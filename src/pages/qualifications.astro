@@ -1,9 +1,204 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const networkingSkills = [
+  'TCP/IP',
+  'DNS',
+  'DHCP',
+  'NAT',
+  'Subnetting',
+  'Routing',
+  'VLAN Fundamentals',
+  'Ping',
+  'Traceroute',
+];
+
+const systemsSkills = [
+  'Ubuntu Linux',
+  'Windows Server',
+  'Active Directory',
+  'Group Policy',
+  'VirtualBox',
+  'Ticketing Systems',
+];
+
+const coursework = [
+  'Intro to Networking',
+  'IT Essentials',
+  'Intro to Programming',
+  'Intro to Script Languages',
+  'IT for Business',
+];
 ---
 
 <Layout title="Qualifications | Mustafa Hasnain">
   <section class="page">
     <h1>Qualifications</h1>
+
+    <section class="block">
+      <h2>Education</h2>
+      <div class="edu">
+        <h3>B.S. in Computer Information Systems and Technology</h3>
+        <p class="school">University of Texas at Dallas</p>
+        <p class="meta">Expected May 2028</p>
+        <div class="coursework">
+          <h4>Coursework</h4>
+          <p>{coursework.join(' · ')}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Certifications</h2>
+      <ul class="certs">
+        <li>
+          <span class="cert-name">Google IT Support Professional</span>
+          <span class="status status-done">Completed</span>
+        </li>
+        <li>
+          <span class="cert-name">CompTIA Network+ (N10-009)</span>
+          <span class="status status-pending">In progress &middot; expected Sept 2026</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <h2>Skills</h2>
+
+      <div class="skill-groups">
+        <div class="skill-group">
+          <h3>Networking</h3>
+          <div class="tags">
+            {networkingSkills.map((skill) => <span class="tag">{skill}</span>)}
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <h3>Systems &amp; Tools</h3>
+          <div class="tags">
+            {systemsSkills.map((skill) => <span class="tag">{skill}</span>)}
+          </div>
+        </div>
+      </div>
+    </section>
   </section>
 </Layout>
+
+<style>
+  h1 {
+    font-size: 2.75rem;
+  }
+
+  .block {
+    margin-top: 4rem;
+  }
+
+  .block h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-accent);
+  }
+
+  .edu h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.3rem;
+  }
+
+  .school {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--color-text);
+    margin: 0 0 0.25rem;
+  }
+
+  .meta {
+    color: var(--color-text-secondary);
+    margin: 0 0 1rem;
+  }
+
+  .coursework {
+    margin-top: 1.25rem;
+  }
+
+  .coursework h4 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+  }
+
+  .coursework p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 1.02rem;
+  }
+
+  .certs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+  }
+
+  .certs li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .cert-name {
+    font-size: 1.05rem;
+    font-weight: 500;
+  }
+
+  .status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .status-done {
+    background: var(--color-accent-solid);
+    color: #ffffff;
+  }
+
+  .status-pending {
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .skill-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 2rem;
+  }
+
+  .skill-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .tag {
+    font-size: 0.95rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+</style>
