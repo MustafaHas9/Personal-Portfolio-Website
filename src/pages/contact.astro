@@ -1,9 +1,94 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const socials = [
+  { name: 'GitHub', href: 'https://github.com/MustafaHas9', color: '#181717' },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/in/mustafahas9/', color: '#0a66c2' },
+  { name: 'YouTube', href: 'https://www.youtube.com/@Mustafa.Has9', color: '#ff0000' },
+];
 ---
 
 <Layout title="Contact | Mustafa Hasnain">
   <section class="page">
     <h1>Contact</h1>
+
+    <div class="contact-stack">
+      <a class="pill" href="mailto:mustafahasnain006@gmail.com" style="background-color: #c2760a">
+        mustafahasnain006@gmail.com
+      </a>
+
+      <img class="resume-preview" src="/resume-preview.png" alt="Mustafa Hasnain's resume" />
+
+      <a class="pill" href="/Mustafa-Hasnain-Resume.pdf" download style="background-color: var(--color-accent-solid)">
+        Download Resume
+      </a>
+
+      <div class="socials">
+        {socials.map((link) => (
+          <a
+            class="pill social"
+            href={link.href}
+            style={`background-color: ${link.color}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {link.name}
+          </a>
+        ))}
+      </div>
+    </div>
   </section>
 </Layout>
+
+<style>
+  h1 {
+    font-size: 2.75rem;
+  }
+
+  .contact-stack {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .pill {
+    color: #ffffff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    padding: 1rem 2.25rem;
+    border-radius: 999px;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+    text-align: center;
+  }
+
+  .pill:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .resume-preview {
+    width: 100%;
+    max-width: 32rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .socials {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+    margin-top: 4rem;
+  }
+
+  .social {
+    border-radius: 10px;
+    font-size: 1.3rem;
+    padding: 1.25rem 2.75rem;
+    min-width: 11rem;
+    display: inline-flex;
+    justify-content: center;
+  }
+</style>
