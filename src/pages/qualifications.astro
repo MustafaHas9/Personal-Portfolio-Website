@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
+import networkPlusBadge from '../assets/badges/comptia-network-plus.png';
 
 const networkingSkills = [
   'TCP/IP',
@@ -31,10 +33,14 @@ const coursework = [
 ];
 
 // `status` picks the pill style: 'done' is the filled gold pill, 'upcoming' is the greyed-out one.
-// No status means no pill.
+// No status means no pill. `badge` is the official issuer badge, shown unaltered: only add one
+// for a certification that has actually been earned.
 const certifications = [
+  {
+    name: 'CompTIA Network+ (N10-009)',
+    badge: { src: networkPlusBadge, alt: 'CompTIA Network+ Certified badge' },
+  },
   { name: 'Google IT Support Professional' },
-  { name: 'CompTIA Network+ (N10-009)' },
   { name: 'CompTIA Security+', status: 'upcoming', label: 'Expected October 2026' },
 ];
 ---
@@ -61,8 +67,15 @@ const certifications = [
       <ul class="certs">
         {certifications.map((cert) => (
           <li class:list={{ upcoming: cert.status === 'upcoming' }}>
-            <span class="cert-name">{cert.name}</span>
-            {cert.status && <span class={`status status-${cert.status}`}>{cert.label}</span>}
+            <div class="cert-text">
+              <span class="cert-name">{cert.name}</span>
+              {cert.status && <span class={`status status-${cert.status}`}>{cert.label}</span>}
+            </div>
+            {cert.badge && (
+              <div class="badge">
+                <Image src={cert.badge.src} alt={cert.badge.alt} width={144} format="png" />
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -142,21 +155,44 @@ const certifications = [
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    /* 19rem min keeps room for the badge plus a two-line name; min(..., 100%) stops a
+       single column from overflowing on very narrow phones. */
+    grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
     /* Every row is as tall as the tallest card, so all cards match even when they
        wrap onto separate rows (tablet, phone) or only some have a pill. */
     grid-auto-rows: 1fr;
     gap: var(--space-sm);
   }
 
+  /* Text on the left, optional badge on the right. Text always starts at the same left
+     edge, so cards line up whether or not they have a badge. */
   .certs li {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+  }
+
+  .cert-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
-    padding: var(--space-md);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
+  }
+
+  /* Issuer badges must not be distorted, recoloured, or built into another shape:
+     fixed width, height follows the image's own proportions, no effects. */
+  .badge {
+    flex-shrink: 0;
+  }
+
+  .badge :global(img) {
+    display: block;
+    width: 72px;
+    height: auto;
   }
 
   .cert-name {
@@ -172,7 +208,7 @@ const certifications = [
     white-space: nowrap;
   }
 
-  /* Same 1px border as .status-pending so both badges are the same height. */
+  /* Same 1px border as .status-upcoming so both pills are the same height. */
   .status-done {
     background: var(--color-accent-solid);
     border: 1px solid var(--color-accent-solid);
