@@ -1,5 +1,5 @@
 ---
-import { FaEnvelope, FaFileLines, FaGithub, FaLinkedin, FaYoutube } from 'react-icons/fa6';
+import { FaEnvelope, FaGithub, FaLinkedin, FaYoutube } from 'react-icons/fa6';
 import { TextureButton } from '@/components/ui/texture-button';
 
 const links = [
@@ -13,7 +13,6 @@ const socials = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mustafahas9/', Icon: FaLinkedin, brand: 'linkedin', external: true },
   { label: 'YouTube', href: 'https://www.youtube.com/@Mustafa.Has9', Icon: FaYoutube, brand: 'youtube', external: true },
   { label: 'Email', href: 'mailto:mustafahasnain006@gmail.com', Icon: FaEnvelope, brand: 'gold' },
-  { label: 'Download resume (PDF)', href: '/Mustafa-Hasnain-Resume.pdf', Icon: FaFileLines, brand: 'gold', download: true },
 ];
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -39,7 +38,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     </ul>
   </nav>
   <div class="nav-actions">
-    {socials.map(({ Icon, label, href, brand, external, download }) => (
+    {socials.map(({ Icon, label, href, brand, external }) => (
       <a
         class="social"
         data-brand={brand}
@@ -48,7 +47,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         title={label}
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
-        download={download ? '' : undefined}
       >
         <Icon size={22} aria-hidden="true" />
       </a>
@@ -233,7 +231,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     --glow-rgb: 36 41 47;
   }
 
-  /* The single-row layout needs about 900px (logo + links + 5 icons + toggle), so below
+  /* The single-row layout needs about 900px (logo + links + 4 icons + toggle), so below
      that the links move to their own row under the logo and icons. */
   @media (max-width: 899px) {
     .nav {

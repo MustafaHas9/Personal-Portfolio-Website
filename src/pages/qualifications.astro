@@ -29,6 +29,14 @@ const coursework = [
   'Intro to Script Languages',
   'IT for Business',
 ];
+
+// `status` picks the pill style: 'done' is the filled gold pill, 'upcoming' is the greyed-out one.
+// No status means no pill.
+const certifications = [
+  { name: 'Google IT Support Professional' },
+  { name: 'CompTIA Network+ (N10-009)' },
+  { name: 'CompTIA Security+', status: 'upcoming', label: 'Expected October 2026' },
+];
 ---
 
 <Layout title="Qualifications | Mustafa Hasnain">
@@ -51,14 +59,12 @@ const coursework = [
     <section class="block">
       <h2>Certifications</h2>
       <ul class="certs">
-        <li>
-          <span class="cert-name">Google IT Support Professional</span>
-          <span class="status status-done">Completed</span>
-        </li>
-        <li>
-          <span class="cert-name">CompTIA Network+ (N10-009)</span>
-          <span class="status status-pending">In progress &middot; expected Sept 2026</span>
-        </li>
+        {certifications.map((cert) => (
+          <li class:list={{ upcoming: cert.status === 'upcoming' }}>
+            <span class="cert-name">{cert.name}</span>
+            {cert.status && <span class={`status status-${cert.status}`}>{cert.label}</span>}
+          </li>
+        ))}
       </ul>
     </section>
 
@@ -137,6 +143,9 @@ const coursework = [
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    /* Every row is as tall as the tallest card, so all cards match even when they
+       wrap onto separate rows (tablet, phone) or only some have a pill. */
+    grid-auto-rows: 1fr;
     gap: var(--space-sm);
   }
 
@@ -170,9 +179,15 @@ const coursework = [
     color: #ffffff;
   }
 
-  .status-pending {
-    border: 1px solid var(--color-accent);
-    color: var(--color-accent);
+  /* Greyed out: not earned yet. The whole entry is muted, not just the pill. */
+  .status-upcoming {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+  }
+
+  .upcoming .cert-name {
+    color: var(--color-text-secondary);
   }
 
   .skill-groups {
