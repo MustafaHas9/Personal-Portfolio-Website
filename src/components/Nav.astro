@@ -98,6 +98,20 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     font-size: 1.15rem;
     line-height: 1;
   }
+
+  @media (max-width: 640px) {
+    .nav {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 0.85rem;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .logo,
+    .nav-actions {
+      justify-self: center;
+    }
+  }
 </style>
 
 <script>

@@ -3,7 +3,77 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Mustafa Hasnain">
-  <section class="page">
+  <section class="page hero">
     <h1>Mustafa Hasnain</h1>
+    <p class="subhead">
+      I like understanding how networks and systems actually work — then proving it by building the thing myself.
+    </p>
+
+    <div class="story">
+      <p>
+        I'm a Computer Information Systems and Technology student at UT Dallas, and most of what I know about
+        networking and infrastructure I've learned by building it rather than reading about it.
+      </p>
+      <p>
+        That's led to a home lab running Active Directory across four virtual machines — a domain controller, a
+        routing server, a file server, and a client — plus a Raspberry Pi that watches over all of it, catching
+        outages and confirming recoveries in real time.
+      </p>
+      <p>
+        Right now I'm studying for the CompTIA Network+ certification and looking to start my career in IT and
+        networking. The projects and qualifications pages have the specifics.
+      </p>
+    </div>
+
+    <div class="cta-row">
+      <a href="/projects">See the projects <span aria-hidden="true">&rarr;</span></a>
+      <a href="/qualifications">Qualifications <span aria-hidden="true">&rarr;</span></a>
+    </div>
   </section>
 </Layout>
+
+<style>
+  .hero {
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .subhead {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    max-width: 38rem;
+    margin: 0 auto 3rem;
+  }
+
+  .story {
+    max-width: 34rem;
+    margin: 0 auto;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .story p {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--color-text);
+  }
+
+  .cta-row {
+    margin-top: 3.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cta-row a {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+</style>
