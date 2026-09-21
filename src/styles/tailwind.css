@@ -1,0 +1,55 @@
+/* Tailwind without Preflight (its global reset) so existing pages keep their look.
+   Layer order matters: utilities must beat the base styles in global.css. */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import './global.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Dark mode follows the existing <html data-theme="dark"> toggle, not a .dark class. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* `--color-border` already exists in global.css, so the shadcn "border" token
+   points at an alias instead of referencing itself. */
+@layer base {
+  :root {
+    --color-border-ui: var(--color-border);
+  }
+}
+
+/* Shared button glow: a soft halo at rest that turns gold on hover/focus.
+   Colours come from --glow-rest / --glow-hover in global.css (set per theme). */
+@layer components {
+  .glow-btn {
+    box-shadow: 0 0 14px var(--glow-rest);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  .glow-btn:hover,
+  .glow-btn:focus-visible {
+    box-shadow: 0 0 22px 2px var(--glow-hover);
+  }
+}
+
+/* Bridge: shadcn / Cult UI token names -> this site's existing colour variables. */
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-bg);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-bg);
+  --color-popover-foreground: var(--color-text);
+  --color-primary: var(--color-accent-solid);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-bg-secondary);
+  --color-secondary-foreground: var(--color-text);
+  --color-muted: var(--color-bg-secondary);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-accent: var(--color-bg-secondary);
+  --color-accent-foreground: var(--color-text);
+  --color-border: var(--color-border-ui);
+  --color-input: var(--color-border-ui);
+  --color-ring: var(--color-accent-solid);
+  --color-brand: var(--color-accent);
+  --color-brand-hover: var(--color-accent-hover);
+}

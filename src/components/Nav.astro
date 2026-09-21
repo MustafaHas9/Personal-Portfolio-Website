@@ -1,27 +1,61 @@
 ---
+import { FaEnvelope, FaFileLines, FaGithub, FaLinkedin, FaYoutube } from 'react-icons/fa6';
+import { TextureButton } from '@/components/ui/texture-button';
+
 const links = [
   { href: '/projects', label: 'Projects' },
   { href: '/qualifications', label: 'Qualifications' },
-  { href: '/contact', label: 'Contact' },
+];
+
+// `brand` picks the glow colour (see .social[data-brand] below).
+const socials = [
+  { label: 'GitHub', href: 'https://github.com/MustafaHas9', Icon: FaGithub, brand: 'github', external: true },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mustafahas9/', Icon: FaLinkedin, brand: 'linkedin', external: true },
+  { label: 'YouTube', href: 'https://www.youtube.com/@Mustafa.Has9', Icon: FaYoutube, brand: 'youtube', external: true },
+  { label: 'Email', href: 'mailto:mustafahasnain006@gmail.com', Icon: FaEnvelope, brand: 'gold' },
+  { label: 'Download resume (PDF)', href: '/Mustafa-Hasnain-Resume.pdf', Icon: FaFileLines, brand: 'gold', download: true },
 ];
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 
 <header class="nav">
-  <a href="/" class="logo">Mustafa Hasnain</a>
+  <a href="/" class="logo">mustafahasnain<span class="tld">.com</span></a>
   <nav>
     <ul>
       {links.map((link) => (
         <li><a href={link.href} aria-current={currentPath === link.href ? 'page' : undefined}>{link.label}</a></li>
       ))}
+      <li>
+        <button
+          type="button"
+          class="soon"
+          aria-disabled="true"
+          title="Interactive Cisco CLI simulator — coming soon"
+        >
+          Coming Soon
+        </button>
+      </li>
     </ul>
   </nav>
   <div class="nav-actions">
-    <span class="coming-soon" title="Interactive Cisco CLI simulator — coming soon">Coming Soon</span>
-    <button id="theme-toggle" type="button" aria-label="Toggle dark mode">
-      <span id="theme-toggle-icon">🌙</span>
-    </button>
+    {socials.map(({ Icon, label, href, brand, external, download }) => (
+      <a
+        class="social"
+        data-brand={brand}
+        href={href}
+        aria-label={label}
+        title={label}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+        download={download ? '' : undefined}
+      >
+        <Icon size={22} aria-hidden="true" />
+      </a>
+    ))}
+    <TextureButton id="theme-toggle" type="button" variant="icon" size="icon" aria-label="Toggle dark mode">
+      <span id="theme-toggle-icon" style="font-size: 1rem; line-height: 1;">🌙</span>
+    </TextureButton>
   </div>
 </header>
 
@@ -32,24 +66,43 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     z-index: 10;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: 'logo nav actions';
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
+
+    /* Gold hover glow for the logo and text links: a tight bright layer plus a wide soft one. */
+    --nav-hover-glow: 0 0 8px rgb(var(--accent-rgb) / 0.9), 0 0 22px rgb(var(--accent-rgb) / 0.6);
   }
 
   .logo {
+    grid-area: logo;
     font-weight: 600;
     font-size: 1.2rem;
     color: var(--color-text);
     white-space: nowrap;
     justify-self: start;
+    transition: text-shadow 0.3s ease;
+  }
+
+  .nav > nav {
+    grid-area: nav;
+  }
+
+  .logo:hover {
+    text-shadow: var(--nav-hover-glow);
+  }
+
+  .tld {
+    color: var(--color-accent);
   }
 
   nav ul {
     display: flex;
-    gap: 1.25rem;
+    align-items: center;
+    gap: 0.75rem var(--space-md);
     list-style: none;
     margin: 0;
     padding: 0;
@@ -60,10 +113,12 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
   nav a {
     color: var(--color-text-secondary);
     font-size: 1.05rem;
+    transition: color 0.2s ease, text-shadow 0.3s ease;
   }
 
   nav a:hover {
     color: var(--color-accent);
+    text-shadow: var(--nav-hover-glow);
   }
 
   nav a[aria-current='page'] {
@@ -71,45 +126,154 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     font-weight: 600;
   }
 
+  /* "Coming Soon": a flowing gold gradient with a fixed (non-pulsing) glow.
+     The middle colour is the site accent (same gold as the project titles). The gradient
+     is horizontal (90deg) and starts/ends on the same colour: an angled gradient leaves
+     mismatched colours along the tile edges and shows a hard line as it repeats.
+     The position moves exactly one tile width (200% of a 200% background). */
+  .soon {
+    --soon-deep: #f6c026;
+    --soon-base: var(--color-accent);
+    --soon-light: #fee89a;
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.85rem 1.6rem;
+    border: 0;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: #1c1100;
+    cursor: default;
+    background: linear-gradient(
+      90deg,
+      var(--soon-deep) 0%,
+      var(--soon-base) 25%,
+      var(--soon-light) 50%,
+      var(--soon-base) 75%,
+      var(--soon-deep) 100%
+    );
+    background-size: 200% 100%;
+    animation: soon-flow 4.5s linear infinite;
+    box-shadow: 0 0 22px rgb(var(--accent-rgb) / 0.5);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+
+  /* On the light theme the accent is a deeper amber, so the shades shift with it. */
+  :global([data-theme='light']) .soon {
+    --soon-deep: #b45309;
+    --soon-light: #f59e0b;
+  }
+
+  .soon:hover,
+  .soon:focus-visible {
+    box-shadow: 0 0 30px 3px rgb(var(--accent-rgb) / 0.85);
+    transform: translateY(-1px);
+  }
+
+  @keyframes soon-flow {
+    from {
+      background-position: 0% 50%;
+    }
+    to {
+      background-position: 200% 50%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .soon {
+      animation: none;
+    }
+  }
+
   .nav-actions {
+    grid-area: actions;
     justify-self: end;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-sm);
   }
 
-  .coming-soon {
-    background: var(--color-accent-solid);
-    color: #ffffff;
-    border-radius: 8px;
-    padding: 0.55rem 1.1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+  /* Standalone logos: no circle, glow follows the logo's own shape. */
+  /* The glow colour is bare RGB channels so both filter states are plain rgb() colours
+     and always have the same number of drop-shadows. Mixing colour spaces or list
+     lengths here made the browser interpolate through a bright gold on hover. */
+  .social {
+    --glow-rgb: var(--accent-rgb);
+    display: inline-flex;
+    color: var(--color-text);
+    filter: drop-shadow(0 0 4px rgb(var(--glow-rgb) / 0.35)) drop-shadow(0 0 0 rgb(var(--glow-rgb) / 0));
+    transition: filter 0.3s ease, transform 0.2s ease;
   }
 
-  #theme-toggle {
-    background: none;
-    border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
-    cursor: pointer;
-    padding: 0.55rem 0.75rem;
-    font-size: 1.15rem;
-    line-height: 1;
+  .social:hover,
+  .social:focus-visible {
+    filter: drop-shadow(0 0 5px rgb(var(--glow-rgb) / 1)) drop-shadow(0 0 14px rgb(var(--glow-rgb) / 1));
+    transform: scale(1.12);
   }
 
-  @media (max-width: 640px) {
+  .social[data-brand='github'] {
+    --glow-rgb: 255 255 255;
+  }
+
+  .social[data-brand='linkedin'] {
+    --glow-rgb: 26 134 240;
+  }
+
+  .social[data-brand='youtube'] {
+    --glow-rgb: 255 32 32;
+  }
+
+  /* White would vanish on the light theme, so GitHub falls back to a dark glow there. */
+  :global([data-theme='light']) .social[data-brand='github'] {
+    --glow-rgb: 36 41 47;
+  }
+
+  /* The single-row layout needs about 900px (logo + links + 5 icons + toggle), so below
+     that the links move to their own row under the logo and icons. */
+  @media (max-width: 899px) {
+    .nav {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        'logo actions'
+        'nav nav';
+      row-gap: 0.75rem;
+    }
+  }
+
+  /* Phones: everything stacks and centres, and the links row is tightened so
+     "Projects / Qualifications / Coming Soon" fit on one line. */
+  @media (max-width: 499px) {
     .nav {
       grid-template-columns: 1fr;
+      grid-template-areas:
+        'logo'
+        'nav'
+        'actions';
       justify-items: center;
-      gap: 0.85rem;
-      padding: 1.25rem 1.5rem;
     }
 
     .logo,
     .nav-actions {
       justify-self: center;
+    }
+
+    nav ul {
+      gap: 0.75rem var(--space-sm);
+    }
+
+    nav a {
+      font-size: 1rem;
+    }
+
+    .soon {
+      padding: 0.7rem 1.1rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
     }
   }
 </style>

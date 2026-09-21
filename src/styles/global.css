@@ -7,19 +7,46 @@
   --color-accent: #d97706;
   --color-accent-hover: #b45309;
   --color-accent-solid: #c2760a;
+  /* Accent as bare RGB channels, for rgb(var(--accent-rgb) / alpha) glows. */
+  --accent-rgb: 217 119 6;
+
+  --glow-rest: rgb(15 23 42 / 0.14);
+  --glow-hover: rgb(217 119 6 / 0.55);
+
+  /* Text glows: white headings get a faint white halo, gold text a gold one.
+     White glow is off in light mode, where it would be invisible. */
+  --text-glow-white: 0 0 0 transparent;
+  --text-glow-gold: 0 0 14px rgb(217 119 6 / 0.35);
+
+  /* Spacing scale (8px steps). Use these instead of one-off rem values so every
+     page shares the same rhythm. */
+  --space-xs: 0.5rem; /* 8  */
+  --space-sm: 1rem; /* 16 */
+  --space-md: 1.5rem; /* 24 */
+  --space-lg: 2rem; /* 32 */
+  --space-xl: 3rem; /* 48 */
+  --space-2xl: 4rem; /* 64 */
+  --space-3xl: 5rem; /* 80 */
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 [data-theme='dark'] {
-  --color-bg: #0f172a;
-  --color-bg-secondary: #1e293b;
+  --color-bg: #000000;
+  --color-bg-secondary: #0d0d0d;
   --color-text: #f1f5f9;
   --color-text-secondary: #94a3b8;
-  --color-border: #334155;
+  --color-border: #262626;
   --color-accent: #fcd34d;
   --color-accent-hover: #fde68a;
+  --accent-rgb: 252 211 77;
+
+  --glow-rest: rgb(255 255 255 / 0.12);
+  --glow-hover: rgb(252 211 77 / 0.6);
+
+  --text-glow-white: 0 0 18px rgb(255 255 255 / 0.2);
+  --text-glow-gold: 0 0 16px rgb(252 211 77 / 0.5);
 }
 
 *,
@@ -56,18 +83,56 @@ pre {
   font-family: var(--font-mono);
 }
 
+/* Browsers give headings and paragraphs their own margins (e.g. 0.67em on h1), which
+   silently stacked with the spacing set on each page. Zero them; spacing is set
+   explicitly with the scale above. */
 h1,
 h2,
-h3 {
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
   line-height: 1.2;
+  text-shadow: var(--text-glow-white);
 }
 
 .page {
-  padding: 5rem 2.5rem;
+  padding: var(--space-3xl) var(--space-lg);
   max-width: 64rem;
   margin: 0 auto;
 }
 
+/* Same distance from the page title to the first block on every page. */
 .page > h1 {
   text-align: center;
+  margin-bottom: var(--space-xl);
+  /* 2.75rem, shrinking only on very narrow phones so long titles don't overflow. */
+  font-size: clamp(2rem, 11vw, 2.75rem);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-xl) var(--space-md) var(--space-2xl);
+  }
+}
+
+/* Skill / tech chips, shared by the Projects and Qualifications pages. */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.tag {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
 }
