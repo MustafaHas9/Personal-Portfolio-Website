@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { title } = Astro.props;
+const year = new Date().getFullYear();
 ---
 
 <html lang="en">
@@ -32,5 +33,21 @@ const { title } = Astro.props;
     <main>
       <slot />
     </main>
+    <footer>
+      <p>&copy; {year} Mustafa Hasnain</p>
+    </footer>
   </body>
 </html>
+
+<style>
+  footer {
+    padding: var(--space-md);
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+</style>
