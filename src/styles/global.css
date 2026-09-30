@@ -136,3 +136,15 @@ h4 {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
 }
+
+/* Shared button glow: a soft halo at rest that turns gold on hover/focus. Used by the
+   Button component and the projects page's GitHub badge link. */
+.glow-btn {
+  box-shadow: 0 0 14px var(--glow-rest);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.glow-btn:hover,
+.glow-btn:focus-visible {
+  box-shadow: 0 0 22px 2px var(--glow-hover);
+}

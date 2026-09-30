@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
-import { TextureButton } from '@/components/ui/texture-button';
+import Button from '../components/Button.astro';
 import headshot from '../assets/headshot.png';
 ---
 
@@ -41,12 +41,12 @@ import headshot from '../assets/headshot.png';
     </div>
 
     <div class="cta-row">
-      <TextureButton href="/projects" variant="gold" size="lg" className="w-auto">
+      <Button href="/projects" variant="gold">
         See the projects <span aria-hidden="true">&rarr;</span>
-      </TextureButton>
-      <TextureButton href="/qualifications" variant="secondary" size="lg" className="w-auto">
+      </Button>
+      <Button href="/qualifications" variant="secondary">
         Qualifications <span aria-hidden="true">&rarr;</span>
-      </TextureButton>
+      </Button>
     </div>
   </section>
 </Layout>

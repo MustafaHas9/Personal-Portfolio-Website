@@ -1,6 +1,6 @@
 ---
 import Nav from '../components/Nav.astro';
-import '../styles/tailwind.css';
+import '../styles/global.css';
 
 interface Props {
   title: string;
@@ -13,7 +13,7 @@ const year = new Date().getFullYear();
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" />
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

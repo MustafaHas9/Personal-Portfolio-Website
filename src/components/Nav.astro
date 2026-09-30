@@ -1,6 +1,6 @@
 ---
-import { FaEnvelope, FaGithub, FaLinkedin, FaYoutube } from 'react-icons/fa6';
-import { TextureButton } from '@/components/ui/texture-button';
+import Icon from './Icon.astro';
+import Button from './Button.astro';
 
 const links = [
   { href: '/projects', label: 'Projects' },
@@ -8,11 +8,11 @@ const links = [
 ];
 
 // `brand` picks the glow colour (see .social[data-brand] below).
-const socials = [
-  { label: 'GitHub', href: 'https://github.com/MustafaHas9', Icon: FaGithub, brand: 'github', external: true },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mustafahas9/', Icon: FaLinkedin, brand: 'linkedin', external: true },
-  { label: 'YouTube', href: 'https://www.youtube.com/@Mustafa.Has9', Icon: FaYoutube, brand: 'youtube', external: true },
-  { label: 'Email', href: 'mailto:mustafahasnain006@gmail.com', Icon: FaEnvelope, brand: 'gold' },
+const socials: { label: string; href: string; icon: 'github' | 'linkedin' | 'youtube' | 'envelope'; brand: string; external?: boolean }[] = [
+  { label: 'GitHub', href: 'https://github.com/MustafaHas9', icon: 'github', brand: 'github', external: true },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/mustafahas9/', icon: 'linkedin', brand: 'linkedin', external: true },
+  { label: 'YouTube', href: 'https://www.youtube.com/@Mustafa.Has9', icon: 'youtube', brand: 'youtube', external: true },
+  { label: 'Email', href: 'mailto:mustafahasnain006@gmail.com', icon: 'envelope', brand: 'gold' },
 ];
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -26,19 +26,12 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         <li><a href={link.href} aria-current={currentPath === link.href ? 'page' : undefined}>{link.label}</a></li>
       ))}
       <li>
-        <button
-          type="button"
-          class="soon"
-          aria-disabled="true"
-          title="Interactive Cisco CLI simulator — coming soon"
-        >
-          Coming Soon
-        </button>
+        <span class="soon" title="Interactive Cisco CLI simulator — coming soon">Coming Soon</span>
       </li>
     </ul>
   </nav>
   <div class="nav-actions">
-    {socials.map(({ Icon, label, href, brand, external }) => (
+    {socials.map(({ icon, label, href, brand, external }) => (
       <a
         class="social"
         data-brand={brand}
@@ -48,12 +41,13 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
       >
-        <Icon size={22} aria-hidden="true" />
+        <Icon name={icon} size={22} />
       </a>
     ))}
-    <TextureButton id="theme-toggle" type="button" variant="icon" size="icon" aria-label="Toggle dark mode">
-      <span id="theme-toggle-icon" style="font-size: 1rem; line-height: 1;">🌙</span>
-    </TextureButton>
+    <Button id="theme-toggle" variant="icon" aria-label="Toggle dark mode" aria-pressed="false">
+      <Icon name="moon" size={16} class="icon-moon" />
+      <Icon name="sun" size={16} class="icon-sun" />
+    </Button>
   </div>
 </header>
 
@@ -139,16 +133,13 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     display: inline-flex;
     align-items: center;
     padding: 0.55rem 1.2rem;
-    border: 0;
     border-radius: 12px;
-    font: inherit;
     font-size: 0.8rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
     color: #1c1100;
-    cursor: default;
     background: linear-gradient(
       90deg,
       var(--soon-deep) 0%,
@@ -160,19 +151,12 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     background-size: 200% 100%;
     animation: soon-flow 4.5s linear infinite;
     box-shadow: 0 0 22px rgb(var(--accent-rgb) / 0.5);
-    transition: box-shadow 0.3s ease, transform 0.2s ease;
   }
 
   /* On the light theme the accent is a deeper amber, so the shades shift with it. */
   :global([data-theme='light']) .soon {
     --soon-deep: #b45309;
     --soon-light: #f59e0b;
-  }
-
-  .soon:hover,
-  .soon:focus-visible {
-    box-shadow: 0 0 30px 3px rgb(var(--accent-rgb) / 0.85);
-    transform: translateY(-1px);
   }
 
   @keyframes soon-flow {
@@ -233,6 +217,20 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     --glow-rgb: 36 41 47;
   }
 
+  /* Theme toggle shows one icon at a time: moon when the site is light (click to go
+     dark), sun when it's dark (click to go light). */
+  #theme-toggle :global(.icon-sun) {
+    display: none;
+  }
+
+  :global([data-theme='dark']) #theme-toggle :global(.icon-sun) {
+    display: block;
+  }
+
+  :global([data-theme='dark']) #theme-toggle :global(.icon-moon) {
+    display: none;
+  }
+
   /* The single-row layout needs about 900px (logo + links + 4 icons + toggle), so below
      that the links move to their own row under the logo and icons. */
   @media (max-width: 899px) {
@@ -280,19 +278,18 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 <script>
   const toggle = document.getElementById('theme-toggle');
-  const icon = document.getElementById('theme-toggle-icon');
 
-  function setIcon(theme: string) {
-    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  function setPressed(theme: string) {
+    toggle?.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
   }
 
-  setIcon(document.documentElement.getAttribute('data-theme') || 'light');
+  setPressed(document.documentElement.getAttribute('data-theme') || 'light');
 
   toggle?.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
-    setIcon(next);
+    setPressed(next);
   });
 </script>

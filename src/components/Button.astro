@@ -1,0 +1,75 @@
+---
+// Plain CSS replacement for Cult UI's TextureButton (see docs/ROADMAP.md, phase 0, item 1) —
+// only the variants and sizes this site actually uses.
+interface Props {
+  variant: 'gold' | 'secondary' | 'icon';
+  href?: string;
+  id?: string;
+  class?: string;
+  'aria-label'?: string;
+  'aria-pressed'?: 'true' | 'false';
+}
+
+const { variant, href, id, class: className, ...rest } = Astro.props;
+const size = variant === 'icon' ? 'icon' : 'lg';
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  href={href}
+  id={id}
+  type={href ? undefined : 'button'}
+  class:list={['btn', 'glow-btn', `btn-${variant}`, `btn-${size}`, className]}
+  {...rest}
+><slot /></Tag>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-lg {
+    border-radius: 12px;
+    padding: 0.75rem 1.75rem;
+    font-size: 1rem;
+  }
+
+  .btn-icon {
+    border-radius: 50%;
+    padding: 0.5rem;
+  }
+
+  .btn-gold {
+    border-color: rgb(0 0 0 / 0.15);
+    background: linear-gradient(to bottom, var(--color-accent-solid), var(--color-accent-hover));
+    color: #ffffff;
+  }
+
+  .btn-gold:hover {
+    background: linear-gradient(to bottom, var(--color-accent-hover), var(--color-accent-solid));
+  }
+
+  .btn-secondary,
+  .btn-icon {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+  }
+
+  .btn-secondary:hover,
+  .btn-icon:hover {
+    background: var(--color-border);
+  }
+</style>
