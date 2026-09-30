@@ -95,13 +95,12 @@ measurement.
 None of this is visible on the page. All of it is load-bearing for everything after it.
 Estimated: one focused session.
 
-1. **Remove React and the Tailwind layer, or justify keeping them.**
-   The build emits `dist/_astro/client.*.js` at roughly 221KB, referenced by zero pages. React is
-   pulled in only to render two static buttons at build time. Either port `TextureButton` to an
-   Astro component with plain CSS — restoring the agreed stack — or write down why the cost is
-   worth paying. Recommendation: port it. The button's appearance can be reproduced in CSS in well
-   under an hour, and it removes five dependencies and the whole Tailwind bridge layer.
-   *Done when:* `npm run build` emits no JS bundle and the pages are visually unchanged.
+1. **Done — 2026-09-29.** Ported `TextureButton` to `src/components/Button.astro` (plain CSS) and
+   `react-icons` to `src/components/Icon.astro` (inline SVG). Removed `@astrojs/react`,
+   `@tailwindcss/vite`, `tailwindcss`, `react`, `react-dom`, `react-icons`,
+   `class-variance-authority`, `clsx`, `tailwind-merge`, and their `@types` packages — nine
+   dependencies gone. `npm run build` emits no JS bundle; build output dropped from 365KB to
+   109KB.
 
 2. **Set `site` in `astro.config.mjs`** to the production URL.
    *Done when:* canonical URLs and a sitemap become possible. Blocks items 3 and 4.
@@ -116,7 +115,8 @@ Estimated: one focused session.
    LinkedIn, which is the main place it will ever be pasted.
    *Done when:* the URL renders a correct card in LinkedIn's Post Inspector.
 
-6. **Install `@astrojs/check` and add `astro check` as `npm run check`.**
+6. **Done — 2026-09-29.** `@astrojs/check` and `typescript` installed; `npm run check` passes
+   with 0 errors.
 
 7. **Add a GitHub Actions workflow** running `npm ci`, `npm run check`, and `npm run build` on
    push and pull request.
@@ -125,17 +125,16 @@ Estimated: one focused session.
 8. **Define the deploy.** Cloudflare Pages build settings committed or written down, so shipping
    is reproducible rather than remembered.
 
-9. **Fix `viewport`** to `width=device-width, initial-scale=1`.
+9. **Done — 2026-09-29.** `viewport` is now `width=device-width, initial-scale=1`.
 
 10. **Add `src/pages/404.astro`** in the site's own style, with a route back to the home page.
 
 11. **Add JSON-LD `Person` schema** to the home page: name, job title, education, and `sameAs`
     links to GitHub, LinkedIn, and YouTube.
 
-12. **Fix the two accessibility defects.** The "Coming Soon" nav element is a focusable
-    `<button aria-disabled="true">` that does nothing — make it a `<span>`. The theme toggle needs
-    `aria-pressed`, and should use an SVG rather than an emoji glyph, which renders inconsistently
-    across operating systems.
+12. **Done — 2026-09-29.** "Coming Soon" is now a plain `<span>` (no longer a focusable no-op
+    button). The theme toggle has `aria-pressed` and swaps an inline moon/sun SVG instead of an
+    emoji glyph.
 
 13. **Self-host the fonts** to remove the render-blocking third-party request on first paint.
 
