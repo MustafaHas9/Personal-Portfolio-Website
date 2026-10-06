@@ -1,0 +1,126 @@
+---
+// Stage 1 of the CLI trainer (see docs/ROADMAP.md, Phase 3): a fake prompt with
+// history and recall. No lesson logic yet — every command gets the same canned
+// line back. Real command matching and output arrive in Stage 2.
+---
+
+<div class="terminal">
+  <div class="terminal-output" id="terminal-output" role="log" aria-live="polite" aria-label="Terminal output"></div>
+  <form class="terminal-input-row" id="terminal-form">
+    <span class="terminal-prompt" aria-hidden="true">guest@trainer:~$</span>
+    <input
+      type="text"
+      id="terminal-input"
+      class="terminal-input"
+      aria-label="Command input"
+      autocomplete="off"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+  </form>
+</div>
+
+<style>
+  .terminal {
+    display: flex;
+    flex-direction: column;
+    height: 24rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    overflow: hidden;
+  }
+
+  .terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .terminal-output p {
+    margin: 0 0 var(--space-xs);
+  }
+
+  .terminal-input-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .terminal-prompt {
+    color: var(--color-accent);
+    white-space: nowrap;
+  }
+
+  .terminal-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .terminal-input:focus {
+    outline: none;
+  }
+</style>
+
+<script>
+  const output = document.getElementById('terminal-output') as HTMLDivElement;
+  const form = document.getElementById('terminal-form') as HTMLFormElement;
+  const input = document.getElementById('terminal-input') as HTMLInputElement;
+
+  const history: string[] = [];
+  // One past the last history entry means "not currently recalling" — Up from
+  // here lands on the most recent command instead of skipping it.
+  let historyIndex = 0;
+
+  function printLine(text: string) {
+    const line = document.createElement('p');
+    line.textContent = text;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const command = input.value.trim();
+    if (!command) return;
+
+    printLine(`guest@trainer:~$ ${command}`);
+    // Stage 2 replaces this with real command matching and lesson-defined output.
+    printLine('(no lesson loaded yet)');
+
+    history.push(command);
+    historyIndex = history.length;
+    input.value = '';
+  });
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (historyIndex > 0) {
+        historyIndex -= 1;
+        input.value = history[historyIndex];
+      }
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (historyIndex < history.length) {
+        historyIndex += 1;
+        input.value = history[historyIndex] ?? '';
+      }
+    } else if (event.key === 'Tab') {
+      // Completion lands in a later stage once there are real commands to complete against.
+      event.preventDefault();
+    }
+  });
+</script>
