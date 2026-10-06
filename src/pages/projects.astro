@@ -22,10 +22,16 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
   <section class="page">
     <h1>Projects</h1>
 
-    <div class="filters" role="group" aria-label="Filter by skill">
-      {allTags.map((tag) => (
-        <button type="button" class="chip" data-tag={tag} aria-pressed="false">{tag}</button>
-      ))}
+    <div class="filter-wrap">
+      <button type="button" id="filter-toggle" class="pill" aria-expanded="false" aria-controls="filter-panel">
+        Filter by skill
+        <Icon name="chevron" size={14} class="chevron" />
+      </button>
+      <div class="filters" id="filter-panel" role="group" aria-label="Filter by skill" hidden>
+        {allTags.map((tag) => (
+          <button type="button" class="chip" data-tag={tag} aria-pressed="false">{tag}</button>
+        ))}
+      </div>
     </div>
 
     <div class="projects">
@@ -103,14 +109,96 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
       applyFilter();
     });
   });
+
+  const filterToggle = document.getElementById('filter-toggle') as HTMLButtonElement;
+  const filterPanel = document.getElementById('filter-panel') as HTMLDivElement;
+
+  function closePanel() {
+    filterPanel.hidden = true;
+    filterToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  filterToggle.addEventListener('click', () => {
+    const isOpen = !filterPanel.hidden;
+    filterPanel.hidden = isOpen;
+    filterToggle.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!filterPanel.hidden && !event.composedPath().includes(filterToggle) && !event.composedPath().includes(filterPanel)) {
+      closePanel();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !filterPanel.hidden) {
+      closePanel();
+      filterToggle.focus();
+    }
+  });
 </script>
 
 <style>
+  .filter-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: var(--space-lg);
+  }
+
+  /* Boxy, badge-style control (same 6px radius as .chip/.github-badge/.resume) —
+     see the design-philosophy note in CLAUDE.md: squared-off over fully rounded. */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0.5rem 1rem;
+    border-radius: 9px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .pill:hover,
+  .pill:focus-visible {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .pill .chevron {
+    transition: transform 0.2s ease;
+  }
+
+  .pill[aria-expanded='true'] .chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Dropdown panel anchored under the pill. The [hidden] rule has to come after
+     the base rule so it wins over `display: flex` below with equal specificity. */
   .filters {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-xs);
-    margin-bottom: var(--space-lg);
+    position: absolute;
+    top: calc(100% + var(--space-xs));
+    left: 0;
+    z-index: 5;
+    width: max-content;
+    max-width: min(90vw, 28rem);
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: var(--color-bg);
+    box-shadow: 0 8px 24px rgb(15 23 42 / 0.16);
+  }
+
+  .filters[hidden] {
+    display: none;
   }
 
   .chip {

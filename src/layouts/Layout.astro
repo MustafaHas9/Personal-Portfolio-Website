@@ -42,10 +42,14 @@ const imageURL = new URL(image, Astro.site);
     </script>
   </head>
   <body>
-    <Nav />
-    <main>
-      <slot />
-    </main>
+    <div class="site">
+      <div class="dot-grid dot-grid-left" aria-hidden="true"></div>
+      <div class="dot-grid dot-grid-right" aria-hidden="true"></div>
+      <Nav />
+      <main>
+        <slot />
+      </main>
+    </div>
     <footer>
       <p>&copy; {year} Mustafa Hasnain</p>
     </footer>
@@ -53,6 +57,45 @@ const imageURL = new URL(image, Astro.site);
 </html>
 
 <style>
+  /* .site wraps Nav + main (not footer) and is the positioned ancestor the
+     starfield spans — top:0/bottom:0 below stop at the end of main, so the
+     dots never run into the footer below. */
+  .site {
+    position: relative;
+  }
+
+  /* Starfield texture, confined to the gutters outside .page's content column
+     (max-width 64rem, global.css: half of that is the gutter width below) so it
+     can never render underneath actual content. Absolute against .site, not
+     fixed against the viewport, so it's part of the page and scrolls with it
+     instead of hovering in place.
+     The tile is a hand-placed scatter of circles (not a repeating grid) so it
+     reads as random when tiled. The mask reaches full transparency by 45% of
+     the gutter's width, leaving a clear gap before the content edge rather than
+     fading right up against it. */
+  .dot-grid {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: -1;
+    pointer-events: none;
+    width: max(0px, calc(50% - 32rem));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='260' viewBox='0 0 180 260'%3E%3Cg fill='%2394a3b8'%3E%3Ccircle cx='12' cy='18' r='0.9'/%3E%3Ccircle cx='45' cy='8' r='0.6'/%3E%3Ccircle cx='78' cy='34' r='1.3'/%3E%3Ccircle cx='23' cy='52' r='0.7'/%3E%3Ccircle cx='102' cy='15' r='1'/%3E%3Ccircle cx='140' cy='47' r='0.8'/%3E%3Ccircle cx='160' cy='12' r='0.6'/%3E%3Ccircle cx='5' cy='80' r='1.1'/%3E%3Ccircle cx='60' cy='95' r='0.9'/%3E%3Ccircle cx='130' cy='88' r='0.7'/%3E%3Ccircle cx='170' cy='70' r='1.2'/%3E%3Ccircle cx='90' cy='120' r='0.6'/%3E%3Ccircle cx='35' cy='140' r='1'/%3E%3Ccircle cx='150' cy='135' r='0.8'/%3E%3Ccircle cx='15' cy='160' r='0.7'/%3E%3Ccircle cx='70' cy='170' r='1.3'/%3E%3Ccircle cx='115' cy='155' r='0.6'/%3E%3Ccircle cx='175' cy='180' r='0.9'/%3E%3Ccircle cx='40' cy='200' r='0.8'/%3E%3Ccircle cx='95' cy='210' r='1.1'/%3E%3Ccircle cx='135' cy='225' r='0.7'/%3E%3Ccircle cx='10' cy='230' r='0.6'/%3E%3Ccircle cx='160' cy='245' r='1'/%3E%3Ccircle cx='55' cy='250' r='0.8'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 180px 260px;
+  }
+
+  .dot-grid-left {
+    left: 0;
+    mask-image: linear-gradient(to right, black 0%, black 20%, transparent 45%);
+    -webkit-mask-image: linear-gradient(to right, black 0%, black 20%, transparent 45%);
+  }
+
+  .dot-grid-right {
+    right: 0;
+    mask-image: linear-gradient(to left, black 0%, black 20%, transparent 45%);
+    -webkit-mask-image: linear-gradient(to left, black 0%, black 20%, transparent 45%);
+  }
+
   footer {
     padding: var(--space-md);
     border-top: 1px solid var(--color-border);

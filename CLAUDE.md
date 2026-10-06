@@ -37,6 +37,11 @@ npm run preview   # serve the built output
 - Issuer badges (CompTIA and similar) are shown unaltered — no recolouring, cropping, or
   distortion — and only for a certification actually earned.
 - Never list a certification, skill, project, or metric that isn't real.
+- Mustafa's design preference: boxy over pilly. Buttons, badges, and chip-style controls use a
+  small border-radius — 6px for small chip-style controls (`.chip`/`.github-badge`/`.resume`),
+  ~9px for slightly larger standalone controls (Apple-style softened corners) — rather than a
+  fully rounded capsule, even for things that would conventionally be "pills" (e.g. a filter
+  toggle).
 
 ## Prose
 
