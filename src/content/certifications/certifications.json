@@ -1,7 +1,7 @@
 {
   "network-plus": {
     "order": 1,
-    "name": "CompTIA Network+ (N10-009)",
+    "name": "CompTIA Network+",
     "badge": {
       "src": "../../assets/badges/comptia-network-plus.png",
       "alt": "CompTIA Network+ Certified badge"
