@@ -31,6 +31,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     </ul>
   </nav>
   <div class="nav-actions">
+    <a class="resume" href="/Mustafa-Hasnain-Resume.pdf" download title="Download resume (PDF)">Resume</a>
     {socials.map(({ icon, label, href, brand, external }) => (
       <a
         class="social"
@@ -180,6 +181,26 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+  }
+
+  /* Same small-badge look as the GitHub link on the projects page. */
+  .resume {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .resume:hover,
+  .resume:focus-visible {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
   }
 
   /* Standalone logos: no circle, glow follows the logo's own shape. */

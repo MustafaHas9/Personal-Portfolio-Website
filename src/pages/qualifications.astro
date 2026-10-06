@@ -1,28 +1,7 @@
 ---
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import networkPlusBadge from '../assets/badges/comptia-network-plus.png';
-
-const networkingSkills = [
-  'TCP/IP',
-  'DNS',
-  'DHCP',
-  'NAT',
-  'Subnetting',
-  'Routing',
-  'VLAN Fundamentals',
-  'Ping',
-  'Traceroute',
-];
-
-const systemsSkills = [
-  'Ubuntu Linux',
-  'Windows Server',
-  'Active Directory',
-  'Group Policy',
-  'VirtualBox',
-  'Ticketing Systems',
-];
 
 const coursework = [
   'Intro to Networking',
@@ -35,17 +14,14 @@ const coursework = [
 // `status` picks the pill style: 'done' is the filled gold pill, 'upcoming' is the greyed-out one.
 // No status means no pill. `badge` is the official issuer badge, shown unaltered: only add one
 // for a certification that has actually been earned.
-const certifications = [
-  {
-    name: 'CompTIA Network+ (N10-009)',
-    badge: { src: networkPlusBadge, alt: 'CompTIA Network+ Certified badge' },
-  },
-  { name: 'Google IT Support Professional' },
-  { name: 'CompTIA Security+', status: 'upcoming', label: 'Expected October 2026' },
-];
+const certifications = (await getCollection('certifications')).sort((a, b) => a.data.order - b.data.order);
+const skillGroups = (await getCollection('skills')).sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Layout title="Qualifications | Mustafa Hasnain">
+<Layout
+  title="Qualifications | Mustafa Hasnain"
+  description="Education, certifications, and skills: CompTIA Network+, Google IT Support Professional, and a B.S. in Computer Information Systems and Technology."
+>
   <section class="page">
     <h1>Qualifications</h1>
 
@@ -65,7 +41,7 @@ const certifications = [
     <section class="block">
       <h2>Certifications</h2>
       <ul class="certs">
-        {certifications.map((cert) => (
+        {certifications.map(({ data: cert }) => (
           <li class:list={{ upcoming: cert.status === 'upcoming' }}>
             <div class="cert-text">
               <span class="cert-name">{cert.name}</span>
@@ -85,19 +61,14 @@ const certifications = [
       <h2>Skills</h2>
 
       <div class="skill-groups">
-        <div class="skill-group">
-          <h3>Networking</h3>
-          <div class="tags">
-            {networkingSkills.map((skill) => <span class="tag">{skill}</span>)}
+        {skillGroups.map(({ data: group }) => (
+          <div class="skill-group">
+            <h3>{group.group}</h3>
+            <div class="tags">
+              {group.items.map((skill) => <span class="tag">{skill}</span>)}
+            </div>
           </div>
-        </div>
-
-        <div class="skill-group">
-          <h3>Systems &amp; Tools</h3>
-          <div class="tags">
-            {systemsSkills.map((skill) => <span class="tag">{skill}</span>)}
-          </div>
-        </div>
+        ))}
       </div>
     </section>
   </section>

@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+---
+
+<Layout title="Page not found | Mustafa Hasnain" description="This page doesn't exist.">
+  <section class="page not-found">
+    <h1>404</h1>
+    <p class="subhead">That page doesn't exist.</p>
+    <Button href="/" variant="gold">Back to home</Button>
+  </section>
+</Layout>
+
+<style>
+  .not-found {
+    text-align: center;
+  }
+
+  .subhead {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xl);
+  }
+</style>

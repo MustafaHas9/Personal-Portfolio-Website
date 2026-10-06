@@ -1,7 +1,7 @@
 ---
 // Inline SVGs instead of react-icons, so this component has no JS runtime dependency.
 interface Props {
-  name: 'github' | 'linkedin' | 'youtube' | 'envelope' | 'sun' | 'moon';
+  name: 'github' | 'linkedin' | 'youtube' | 'envelope' | 'sun' | 'moon' | 'chevron';
   size?: number;
   class?: string;
 }
@@ -32,6 +32,10 @@ const icons: Record<Props['name'], { viewBox: string; path: string }> = {
   moon: {
     viewBox: '0 0 24 24',
     path: 'M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z',
+  },
+  chevron: {
+    viewBox: '0 0 20 20',
+    path: 'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z',
   },
 };
 

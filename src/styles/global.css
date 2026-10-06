@@ -1,3 +1,21 @@
+/* Self-hosted, avoiding a render-blocking request to Google Fonts on first paint.
+   Both are variable fonts: one file per family covers every weight in use. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --color-bg: #ffffff;
   --color-bg-secondary: #f8fafc;

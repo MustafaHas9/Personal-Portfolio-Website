@@ -3,9 +3,29 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import Button from '../components/Button.astro';
 import headshot from '../assets/headshot.png';
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Mustafa Hasnain',
+  url: 'https://mustafahasnain.com',
+  alumniOf: {
+    '@type': 'CollegeOrUniversity',
+    name: 'University of Texas at Dallas',
+  },
+  sameAs: [
+    'https://github.com/MustafaHas9',
+    'https://www.linkedin.com/in/mustafahas9/',
+    'https://www.youtube.com/@Mustafa.Has9',
+  ],
+};
 ---
 
-<Layout title="Mustafa Hasnain">
+<Layout
+  title="Mustafa Hasnain"
+  description="Home lab builder and CIS student documenting real networking and systems projects: Active Directory, DNS/DHCP, and network monitoring."
+>
+  <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
   <section class="page hero">
     <div class="headshot">
       <Image

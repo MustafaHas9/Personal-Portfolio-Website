@@ -1,0 +1,20 @@
+{
+  "network-plus": {
+    "order": 1,
+    "name": "CompTIA Network+ (N10-009)",
+    "badge": {
+      "src": "../../assets/badges/comptia-network-plus.png",
+      "alt": "CompTIA Network+ Certified badge"
+    }
+  },
+  "google-it-support": {
+    "order": 2,
+    "name": "Google IT Support Professional"
+  },
+  "security-plus": {
+    "order": 3,
+    "name": "CompTIA Security+",
+    "status": "upcoming",
+    "label": "Expected October 2026"
+  }
+}

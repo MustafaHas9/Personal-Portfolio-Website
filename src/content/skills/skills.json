@@ -1,0 +1,12 @@
+{
+  "networking": {
+    "order": 1,
+    "group": "Networking",
+    "items": ["TCP/IP", "DNS", "DHCP", "NAT", "Subnetting", "Routing", "VLAN Fundamentals", "Ping", "Traceroute"]
+  },
+  "systems": {
+    "order": 2,
+    "group": "Systems & Tools",
+    "items": ["Ubuntu Linux", "Windows Server", "Active Directory", "Group Policy", "VirtualBox", "Ticketing Systems"]
+  }
+}

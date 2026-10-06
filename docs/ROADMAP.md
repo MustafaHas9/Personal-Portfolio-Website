@@ -3,7 +3,7 @@
 Working plan for the site. This file is the source of truth for what gets built, in what order,
 and why. Update it when a decision changes — a stale plan is worse than none.
 
-Last reviewed: 2026-09-26
+Last reviewed: 2026-09-29
 
 ---
 
@@ -51,8 +51,20 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   traffic has not moved after the tools ship, this is the first decision to reopen. See phase 5.
 - **2026-09-08 — Astro over 11ty**, separate routes rather than single-page scroll, one gold
   accent, light/dark toggle.
-- **Drifted, needs resolving:** the stack was agreed as plain CSS with no Tailwind. Tailwind and
-  React arrived later, with the Cult UI button. See phase 0, item 1.
+- **Resolved 2026-09-29** — the stack had drifted to include Tailwind and React for one Cult UI
+  button. Both are removed; see phase 0, item 1.
+- **2026-09-29 — Production domain is `mustafahasnain.com`.** Registered at Hostinger, set in
+  `astro.config.mjs`. Cloudflare Pages isn't connected yet — see phase 0, item 8, and
+  `docs/DEPLOY.md`.
+- **2026-09-29 — No job title or "applying for" framing appears anywhere on the site right now.**
+  Home projects only. This drops phase 1, item 2 (the hero "what I'm applying for" line) and
+  narrows phase 0, item 11's JSON-LD to name, education, and `sameAs` — no `jobTitle` field.
+  Revisit when there's a specific role to name.
+- **2026-09-29 — No dedicated contact page.** The existing nav icons (GitHub, LinkedIn, YouTube,
+  email) are the contact point. This satisfies phase 1, item 4 as originally scoped; no new work
+  needed there. Keeps the earlier 2026-09-08 decision to drop the standalone Contact page intact.
+- **2026-09-29 — Resume is a small download button in the nav, not a page section.** Wired to
+  `public/Mustafa-Hasnain-Resume.pdf`; the file itself is added separately whenever it's ready.
 - **2026-09-26 — Projects page is the current priority**, and its detail pattern is an
   expand-in-place card, not a dedicated page per project. Superseded phase 1 item 3, which had
   called for separate project routes.
@@ -78,15 +90,18 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
 
 ---
 
-## Current state — 2026-09-26
+## Current state — 2026-09-29
 
-Three static pages (home, projects, qualifications), 365KB built, 1.1s build. The design tokens
-and theming are real and well executed. The content is specific and credible, and every claim has
-a GitHub repo or a video behind it.
+Four static pages (home, projects, qualifications, 404), ~110KB built, zero JS bundle. Phases 0,
+1, and 2 are complete: no React/Tailwind, real SEO metadata and a share image, a sitemap and
+robots.txt, self-hosted fonts, JSON-LD, CI on push/PR, Lighthouse 100 across all four categories on
+every page, and projects/certifications/skills all live in Astro content collections. Project
+cards expand in place with a skill filter.
 
-What is missing is nearly everything that happens *outside* the page: no metadata, no
-crawlability, no link previews, no error page, no automated checks, no defined deployment, no
-measurement.
+Still missing: Cloudflare Pages isn't connected (settings are written down in `docs/DEPLOY.md`),
+the resume PDF file itself, project photos, and the two projects' expanded "what broke" story
+prose (placeholders are in the content files, marked for Mustafa to write). Everything past this
+point is phase 3, the CLI trainer.
 
 ---
 
@@ -102,41 +117,44 @@ Estimated: one focused session.
    dependencies gone. `npm run build` emits no JS bundle; build output dropped from 365KB to
    109KB.
 
-2. **Set `site` in `astro.config.mjs`** to the production URL.
-   *Done when:* canonical URLs and a sitemap become possible. Blocks items 3 and 4.
+2. **Done — 2026-09-29.** `site` is `https://mustafahasnain.com` in `astro.config.mjs`.
 
-3. **Add `@astrojs/sitemap` and a `public/robots.txt`** pointing at the sitemap.
+3. **Done — 2026-09-29.** `@astrojs/sitemap` added; `public/robots.txt` points at
+   `/sitemap-index.xml`.
 
-4. **Add typed SEO props to `Layout.astro`:** a required `description`, an optional `image`, and a
-   canonical link. Every page passes a real description. None exists today.
+4. **Done — 2026-09-29.** `Layout.astro` takes a required `description` and optional `image` prop,
+   plus a canonical `<link>`. Every page passes a real description.
 
-5. **Add Open Graph and Twitter card tags, and a share image.**
-   Highest-value single item in this phase. The link currently previews as a blank grey box on
-   LinkedIn, which is the main place it will ever be pasted.
-   *Done when:* the URL renders a correct card in LinkedIn's Post Inspector.
+5. **Done — 2026-09-29.** Open Graph and Twitter card tags added. Share image at
+   `public/og-image.png`, composited from the existing headshot and the site's own hero copy —
+   built as a one-off `sharp` script, not a committed dependency or pipeline. Not yet verified in
+   LinkedIn's Post Inspector (needs the live domain).
 
 6. **Done — 2026-09-29.** `@astrojs/check` and `typescript` installed; `npm run check` passes
    with 0 errors.
 
-7. **Add a GitHub Actions workflow** running `npm ci`, `npm run check`, and `npm run build` on
-   push and pull request.
-   *Done when:* a deliberately broken commit fails CI.
+7. **Done — 2026-09-29.** `.github/workflows/ci.yml` runs `npm ci`, `npm run check`, and
+   `npm run build` on push to `main` and on pull requests. Not yet verified against a deliberately
+   broken commit.
 
-8. **Define the deploy.** Cloudflare Pages build settings committed or written down, so shipping
-   is reproducible rather than remembered.
+8. **Done — 2026-09-29.** Not connected yet — build settings, environment variables, and the
+   domain steps are written down in `docs/DEPLOY.md` for when it is.
 
 9. **Done — 2026-09-29.** `viewport` is now `width=device-width, initial-scale=1`.
 
-10. **Add `src/pages/404.astro`** in the site's own style, with a route back to the home page.
+10. **Done — 2026-09-29.** `src/pages/404.astro` matches the site's style, with a button back home.
 
-11. **Add JSON-LD `Person` schema** to the home page: name, job title, education, and `sameAs`
-    links to GitHub, LinkedIn, and YouTube.
+11. **Done — 2026-09-29.** JSON-LD `Person` schema on the home page: name, `alumniOf` (UT Dallas),
+    and `sameAs` links to GitHub, LinkedIn, and YouTube. No `jobTitle` — see the no-job-title
+    decision above.
 
 12. **Done — 2026-09-29.** "Coming Soon" is now a plain `<span>` (no longer a focusable no-op
     button). The theme toggle has `aria-pressed` and swaps an inline moon/sun SVG instead of an
     emoji glyph.
 
-13. **Self-host the fonts** to remove the render-blocking third-party request on first paint.
+13. **Done — 2026-09-29.** Fonts self-hosted from `public/fonts/`: Inter and JetBrains Mono are
+    each a single variable-weight woff2 (Google serves one file per family regardless of which
+    static weights are requested), so no Google Fonts request remains.
 
 ---
 
@@ -145,63 +163,44 @@ Estimated: one focused session.
 Everything a hiring manager needs inside their first 45 seconds.
 Estimated: one to two sessions.
 
-1. **Put the resume back.** It was removed pending an update and never returned. A portfolio a
-   recruiter cannot get a resume from has a hole in it. PDF in `public/`, linked from the home
-   page and the qualifications page.
+1. **Done — 2026-09-29.** Small "Resume" download button in the nav, next to the social icons (see
+   the resume decision above — not a page section). Wired to
+   `public/Mustafa-Hasnain-Resume.pdf`; the file itself is still pending.
 
-2. **Answer "what is he applying for" above the fold.** The opening line is good and specific, but
-   the role being sought only appears in the third paragraph — below the fold on a phone. State it
-   in the hero.
+2. **Dropped — 2026-09-29.** No job title or "applying for" line anywhere on the site right now.
+   See the decision above.
 
-3. **Expand each project card in place, with photos and a skill filter.** One paragraph per
-   project is not enough for someone deciding whether to interview, but a separate page per
-   project isn't the fix here — see the decision above. Instead:
+3. **Done — 2026-09-29.** Each project card is a native `<details>`/`<summary>` element — the whole
+   card is the clickable unit, keyboard-accessible for free, no client-side script needed for the
+   expand itself. A skill filter sits above the list: chips built from the union of every project's
+   tags, ANY-match (see decision above), the one small hand-written script on this page. Both
+   projects have an `images: []` slot and a Markdown body ready for the deeper "what broke" story —
+   both are empty placeholders right now (see Open questions: photos, and the story prose is
+   Mustafa's to write per `CLAUDE.md`).
 
-   - The whole card is one clickable unit (not just a "read more" link inside it) that expands to
-     show a few photos and the deeper story: the problem, the architecture, what broke and how it
-     was diagnosed, what it would take to run in production. The "what broke" part is what
-     separates someone who built a lab from someone who followed a tutorial — it's the single most
-     valuable content on the site for the recruiter audience, expanded pattern or not.
-   - Build the expand with a native `<details>`/`<summary>` element, styled to look like the
-     existing card, not hand-rolled JS. It gets keyboard support, `aria-expanded` semantics, and a
-     working closed/open state for free, and needs zero client-side script.
-   - A skill filter sits above the card list: clickable chips built from the union of every
-     project's tags. Selecting one or more filters the visible cards to ANY match (see decision
-     above). This is genuine client-side interactivity — page content changing after load with no
-     navigation — so it's the one exception to zero-JS on this page. Keep it a small hand-written
-     script (show/hide via a `hidden` attribute or a class), not a framework island; a filter this
-     simple doesn't justify reintroducing React after phase 0 removes it.
-   - Photos exist already and are ready to bring in. Store them under `src/assets/projects/` and
-     render through Astro's `<Image>` component, matching how the headshot and cert badge are
-     already handled — optimized output, not raw files served as-is.
+4. **Dropped — 2026-09-29, satisfied by existing icons.** See the no-contact-page decision above.
 
-   Depends on phase 2 for the data shape (each project needs an `images` list and a longer body
-   alongside the existing fields, not just a title/description/tags).
-
-4. **Add a real contact destination.** Email is a nav icon today. It should be a deliberate
-   landing point with a clear call to action.
-
-5. **Run Lighthouse and fix anything below 95** across performance, accessibility, best practices,
-   and SEO. Three static pages should score near 100 on all four.
+5. **Done — 2026-09-29.** All four pages score 100 on performance, accessibility, best practices,
+   and SEO (measured against the production build with Lighthouse CLI). One fix needed: the
+   "Walkthrough" links' touch target was a few px short of the accessible minimum.
 
 ---
 
 ## Phase 2 — Content architecture
 
-An enabler, not a feature. Do it immediately before phase 1, item 3.
-Estimated: half a session.
+**Done — 2026-09-29.** Projects, certifications, and skills all moved to Astro content collections
+(`src/content.config.ts`):
 
-Projects, certifications, and skills are hardcoded as JavaScript arrays inside `.astro` files
-([projects.astro](../src/pages/projects.astro), [qualifications.astro](../src/pages/qualifications.astro)).
-Adding a project means editing markup, which is precisely the friction that stops content from
-being added.
+- **Projects** — `src/content/projects/*.md`, glob-loaded. Frontmatter carries the existing fields
+  plus `images` (empty for now); the Markdown body is the expanded-card story, currently a comment
+  placeholder for Mustafa to write.
+- **Certifications** and **skills** — `file()`-loaded JSON, object-keyed with an explicit `order`
+  field (the loader sorts by key alphabetically otherwise, which silently reordered the
+  certifications list — caught by checking the rendered page, not by the type check).
 
-Move them to Astro content collections with a Zod schema, so entries become data files, adding one
-cannot break the layout, and a missing required field fails the build instead of rendering blank.
-The project schema needs to carry more than the current fields — an `images` list and a longer
-body for the expanded card (see phase 1, item 3), not just title/description/tags.
-
-*Done when:* a new project can be added by creating one Markdown file and touching no component.
+A new project is now one Markdown file; certifications/skills are one JSON entry each. Education
+and coursework on the qualifications page stayed as plain arrays — not in scope, and there's
+nowhere else they'd be reused.
 
 ---
 
@@ -288,9 +287,12 @@ Recorded so they don't get picked up by accident.
 
 ## Open questions
 
-- Which production URL goes in `site`? Needed before phase 0, item 2.
-- Is the resume ready to go back up, and is the SMS InfoComm role still deliberately kept out of
-  the site text?
+- The resume PDF itself — the button is wired to `public/Mustafa-Hasnain-Resume.pdf`, file pending.
+- SMS InfoComm (current GPU repair job) stays off the site text by default — revisit if that
+  changes.
 - Which CLI topic is lesson one?
-- Where do the project photos live right now, so they can be moved into `src/assets/projects/`
-  when phase 1 item 3 is built?
+- Project photos exist locally but the exact folder wasn't given — needed to fill the `images`
+  field in `src/content/projects/*.md` and drop the files under `src/assets/projects/`.
+- The two projects' expanded-story prose (the "what broke" section) — placeholders are in the
+  content files now; this is Mustafa's to write per `CLAUDE.md`, drafted in chat first if wanted.
+- Cloudflare Pages project isn't created yet — settings are in `docs/DEPLOY.md` for when it is.
