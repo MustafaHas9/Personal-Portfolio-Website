@@ -43,6 +43,15 @@ const skillGroups = (await getCollection('skills')).sort((a, b) => a.data.order 
       <ul class="certs">
         {certifications.map(({ data: cert }) => (
           <li class:list={{ upcoming: cert.status === 'upcoming' }}>
+            {cert.credlyUrl && (
+              <a
+                class="card-link"
+                href={cert.credlyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Verify ${cert.name} on Credly`}
+              ></a>
+            )}
             <div class="cert-text">
               <span class="cert-name">{cert.name}</span>
               {cert.status && <span class={`status status-${cert.status}`}>{cert.label}</span>}
@@ -138,6 +147,7 @@ const skillGroups = (await getCollection('skills')).sort((a, b) => a.data.order 
   /* Text on the left, optional badge on the right. Text always starts at the same left
      edge, so cards line up whether or not they have a badge. */
   .certs li {
+    position: relative;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -145,6 +155,47 @@ const skillGroups = (await getCollection('skills')).sort((a, b) => a.data.order 
     padding: var(--space-md);
     border: 1px solid var(--color-border);
     border-radius: 10px;
+    transition: border-color 0.2s ease;
+  }
+
+  /* Stretched-link pattern: this covers the whole card so the entire thing is
+     clickable, not just the cert name. */
+  .card-link {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transition: box-shadow 0.2s ease;
+  }
+
+  /* Mouse hover only: a plain border highlight that clears the moment the
+     cursor leaves — kept separate from :focus below so it doesn't linger. */
+  .certs li:has(.card-link:hover) {
+    border-color: var(--color-accent);
+  }
+
+  /* Plain :focus (not :focus-visible): fires for a mouse click too, since
+     clicking through to Credly and tabbing back is the main case. Browsers
+     don't clear focus just because you click a non-interactive part of the
+     page afterward, so a plain `box-shadow: ...` here would get stuck exactly
+     like the border did — a one-shot fade-out animation clears itself on a
+     timer instead of depending on focus actually being released. */
+  .card-link:focus {
+    animation: card-glow-fade 1.4s ease forwards;
+  }
+
+  @keyframes card-glow-fade {
+    from {
+      box-shadow: 0 0 22px 2px rgb(var(--accent-rgb) / 0.6);
+    }
+    to {
+      box-shadow: 0 0 22px 2px rgb(var(--accent-rgb) / 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-link:focus {
+      animation: none;
+    }
   }
 
   .cert-text {
@@ -169,6 +220,7 @@ const skillGroups = (await getCollection('skills')).sort((a, b) => a.data.order 
   .cert-name {
     font-size: 1.05rem;
     font-weight: 500;
+    color: var(--color-text);
   }
 
   .status {

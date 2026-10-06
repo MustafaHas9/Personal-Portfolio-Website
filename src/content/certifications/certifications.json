@@ -5,11 +5,17 @@
     "badge": {
       "src": "../../assets/badges/comptia-network-plus.png",
       "alt": "CompTIA Network+ Certified badge"
-    }
+    },
+    "credlyUrl": "https://www.credly.com/badges/529ed641-a16c-4ce2-8fe2-421aa90407e0/public_url"
   },
   "google-it-support": {
     "order": 2,
-    "name": "Google IT Support Professional"
+    "name": "Google IT Support Professional",
+    "badge": {
+      "src": "../../assets/badges/google-it-support.png",
+      "alt": "Google IT Support Professional Certificate badge"
+    },
+    "credlyUrl": "https://www.credly.com/badges/891c11fa-bb5b-4050-ae3c-730c94fcd3b5/public_url"
   },
   "security-plus": {
     "order": 3,

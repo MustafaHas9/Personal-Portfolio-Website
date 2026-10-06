@@ -22,6 +22,7 @@ const certifications = defineCollection({
       order: z.number(),
       name: z.string(),
       badge: z.object({ src: image(), alt: z.string() }).optional(),
+      credlyUrl: z.url().optional(),
       status: z.enum(['upcoming']).optional(),
       label: z.string().optional(),
     }),
