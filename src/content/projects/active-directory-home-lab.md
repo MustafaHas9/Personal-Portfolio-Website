@@ -1,11 +1,11 @@
 ---
 name: Active Directory Home Lab
 description: >-
-  A four-VM Windows Server 2025 environment in VirtualBox simulating a small enterprise network: a
-  domain controller running AD DS, DNS, and DHCP; a routing server handling NAT; a file server with
-  role-based SMB shares; and a domain-joined Windows 11 client. Organizational units, security
-  groups, and Group Policy handle everything from drive mapping to Control Panel restrictions — the
-  same way it'd be structured in a real small business.
+  A four-VM Windows Server 2025 setup in VirtualBox that simulates a small business network.
+  There's a domain controller running AD DS, DNS, and DHCP, a routing server handling NAT, a file
+  server with role-based SMB shares, and a domain-joined Windows 11 client. OUs, security groups,
+  and Group Policy handle things like drive mapping and Control Panel restrictions, the same way
+  you'd set it up in a real small business.
 tags:
   - Windows Server 2025
   - Active Directory

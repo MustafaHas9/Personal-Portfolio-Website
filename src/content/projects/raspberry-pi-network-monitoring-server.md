@@ -1,10 +1,11 @@
 ---
 name: Raspberry Pi Network Monitoring Server
 description: >-
-  A Raspberry Pi running Debian and Docker keeps watch over the home lab, using Uptime Kuma to
-  monitor eight systems and services — from internet connectivity and DNS resolution to the domain
-  controller and file server. It reaches the isolated VirtualBox network through a static route
-  across the lab's RRAS server, and it's already caught and logged a real outage during testing.
+  A Raspberry Pi running Debian and Docker that watches over the home lab. It uses Uptime Kuma to
+  monitor eight systems and services, everything from internet connectivity and DNS resolution to
+  the domain controller and file server. It reaches the isolated VirtualBox network through a
+  static route on the lab's RRAS server, and it's already caught and logged a real outage during
+  testing.
 tags:
   - Raspberry Pi
   - Debian 13
