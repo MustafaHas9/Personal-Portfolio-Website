@@ -3,7 +3,7 @@
 Working plan for the site. This file is the source of truth for what gets built, in what order,
 and why. Update it when a decision changes — a stale plan is worse than none.
 
-Last reviewed: 2026-09-29
+Last reviewed: 2026-10-12
 
 ---
 
@@ -77,6 +77,10 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   "Docker" shows projects with either. Chosen over strict AND-matching because the project count is
   small; AND-matching risks a recruiter selecting two real skills and seeing zero results, which
   reads as broken rather than as a legitimate empty state.
+- **2026-10-08 — Finish the portfolio itself before starting Phase 3.** Stage 1 of the CLI trainer
+  (the terminal component) already exists but isn't wired into a route or the nav yet — Mustafa
+  wants the resume, photos, prose, and Cloudflare connection settled first. Phase 3 resumes at
+  Stage 2 once those are done.
 
 ---
 
@@ -90,18 +94,25 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
 
 ---
 
-## Current state — 2026-09-29
+## Current state — 2026-10-12
 
-Four static pages (home, projects, qualifications, 404), ~110KB built, zero JS bundle. Phases 0,
-1, and 2 are complete: no React/Tailwind, real SEO metadata and a share image, a sitemap and
-robots.txt, self-hosted fonts, JSON-LD, CI on push/PR, Lighthouse 100 across all four categories on
-every page, and projects/certifications/skills all live in Astro content collections. Project
-cards expand in place with a skill filter.
+Four static pages (home, projects, qualifications, 404), zero JS bundle except the one small
+filter-toggle script on the projects page. Phases 0, 1, and 2 are complete: no React/Tailwind, real
+SEO metadata and a share image, a sitemap and robots.txt, self-hosted fonts, JSON-LD, CI on
+push/PR, Lighthouse 100 across all four categories on every page, and projects/certifications/skills
+all live in Astro content collections.
+
+Since phase 2: both earned certifications (Network+, Google IT Support) have their issuer badge and
+link out to their public Credly verification page; the project skill filter is now a boxy toggle
+pill (collapsed by default, opens a dropdown) instead of a row of chips always on screen; the layout
+has a decorative starfield in the side gutters that stays clear of content; and the homepage/project
+copy was rewritten in a more natural voice. Phase 3 Stage 1 (the trainer terminal component,
+history + recall, no lesson logic) exists at `src/components/Terminal.astro` but isn't wired into
+any route yet — see the 2026-10-08 decision above.
 
 Still missing: Cloudflare Pages isn't connected (settings are written down in `docs/DEPLOY.md`),
 the resume PDF file itself, project photos, and the two projects' expanded "what broke" story
-prose (placeholders are in the content files, marked for Mustafa to write). Everything past this
-point is phase 3, the CLI trainer.
+prose (placeholders are in the content files, marked for Mustafa to write).
 
 ---
 
@@ -214,9 +225,11 @@ days of work. Twenty well-designed lessons with good validation and good hints i
 and it is what determines whether anyone comes back. Build the smallest shippable version first
 and expand only if it gets used.
 
-**Stage 1 — terminal component.** A fake prompt that takes typed input, keeps history, supports
-up-arrow recall and tab completion, and prints canned output. No lesson logic yet. Has to be
-keyboard-accessible and usable on a phone.
+**Stage 1 — terminal component. Built, not wired in.** `src/components/Terminal.astro`: a fake
+prompt that takes typed input, keeps history, supports up-arrow/down-arrow recall, and prints a
+canned line back (no lesson logic yet — that's Stage 2). Tab is captured but not yet wired to real
+completion since there's nothing to complete against. Not attached to any route or nav entry yet —
+see the 2026-10-08 decision to finish the rest of the site first.
 
 **Stage 2 — one complete lesson, end to end.** Pick the single most-searched topic: initial switch
 configuration, or VLAN creation. Define a lesson as data — steps, accepted commands (matchers

@@ -18,10 +18,8 @@ npm run preview   # serve the built output
 
 - Astro, `output: 'static'`. No SSR, no adapter. Cloudflare Pages serves `dist/` as plain files.
 - Plain CSS is the styling system: tokens in `src/styles/global.css`, scoped `<style>` per component.
-- Tailwind v4 is present with Preflight disabled, and exists only to support the Cult UI button in
-  `src/components/ui/`. It is not the styling system for page code.
-- React is a build-time dependency for that one button. Nothing hydrates. See ROADMAP phase 0 —
-  removing this is planned.
+- No UI framework and no client-side JS framework. Tailwind and React (originally added for one
+  Cult UI button) were removed in phase 0 — see `docs/ROADMAP.md`.
 
 ## House rules
 
