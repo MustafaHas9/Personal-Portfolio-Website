@@ -90,10 +90,15 @@ const imageURL = new URL(image, Astro.site);
     -webkit-mask-image: linear-gradient(to right, black 0%, black 20%, transparent 45%);
   }
 
+  /* Mirrored with scaleX(-1) rather than re-anchored, so the right gutter is the
+     exact reflection of the left: same stars at the same distance from the outer
+     edge and the same fade toward the content. The element is symmetric about its
+     own centre, so the flip doesn't move it. */
   .dot-grid-right {
     right: 0;
-    mask-image: linear-gradient(to left, black 0%, black 20%, transparent 45%);
-    -webkit-mask-image: linear-gradient(to left, black 0%, black 20%, transparent 45%);
+    transform: scaleX(-1);
+    mask-image: linear-gradient(to right, black 0%, black 20%, transparent 45%);
+    -webkit-mask-image: linear-gradient(to right, black 0%, black 20%, transparent 45%);
   }
 
   footer {

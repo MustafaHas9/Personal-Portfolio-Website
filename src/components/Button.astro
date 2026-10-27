@@ -19,7 +19,7 @@ const Tag = href ? 'a' : 'button';
   href={href}
   id={id}
   type={href ? undefined : 'button'}
-  class:list={['btn', 'glow-btn', `btn-${variant}`, `btn-${size}`, className]}
+  class:list={['btn', variant === 'gold' ? 'gold-flow' : 'glow-btn', `btn-${variant}`, `btn-${size}`, className]}
   {...rest}
 ><slot /></Tag>
 
@@ -34,11 +34,7 @@ const Tag = href ? 'a' : 'button';
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
-  }
-
-  .btn:active {
-    transform: translateY(1px);
+    transition: background 0.3s ease, border-color 0.3s ease, scale 0.15s ease;
   }
 
   .btn-lg {
@@ -52,14 +48,21 @@ const Tag = href ? 'a' : 'button';
     padding: 0.5rem;
   }
 
+  /* Colour and animation come from .gold-flow (global.css), shared with the nav's
+     Coming Soon badge. No glow at rest; hover and keyboard focus use the same glow as
+     .glow-btn, so this button matches the secondary one next to it. The text colour is
+     restated on hover because the global `a:hover` rule would otherwise turn it gold. */
   .btn-gold {
     border-color: rgb(0 0 0 / 0.15);
-    background: linear-gradient(to bottom, var(--color-accent-solid), var(--color-accent-hover));
-    color: #ffffff;
+    font-weight: 800;
+    box-shadow: none;
+    transition: box-shadow 0.3s ease, scale 0.15s ease;
   }
 
-  .btn-gold:hover {
-    background: linear-gradient(to bottom, var(--color-accent-hover), var(--color-accent-solid));
+  .btn-gold:hover,
+  .btn-gold:focus-visible {
+    color: var(--gold-ink);
+    box-shadow: 0 0 22px 2px var(--glow-hover);
   }
 
   .btn-secondary,

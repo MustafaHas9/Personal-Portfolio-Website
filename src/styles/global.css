@@ -155,11 +155,83 @@ h4 {
   border: 1px solid var(--color-border);
 }
 
+/* Flowing gold gradient shared by the nav's "Coming Soon" badge and the gold Button.
+   The middle colour is the site accent (same gold as the project titles). The gradient
+   is horizontal (90deg) and starts/ends on the same colour: an angled gradient leaves
+   mismatched colours along the tile edges and shows a hard line as it repeats.
+   The position moves exactly one tile width (200% of a 200% background). */
+.gold-flow {
+  --gold-deep: #f6c026;
+  --gold-base: var(--color-accent);
+  --gold-light: #fee89a;
+  --gold-ink: #1c1100;
+
+  color: var(--gold-ink);
+  background: linear-gradient(
+    90deg,
+    var(--gold-deep) 0%,
+    var(--gold-base) 25%,
+    var(--gold-light) 50%,
+    var(--gold-base) 75%,
+    var(--gold-deep) 100%
+  );
+  background-size: 200% 100%;
+  animation: gold-flow 4.5s linear infinite;
+  box-shadow: 0 0 22px rgb(var(--accent-rgb) / 0.5);
+}
+
+/* On the light theme the accent is a deeper amber, so the shades shift with it. */
+[data-theme='light'] .gold-flow {
+  --gold-deep: #b45309;
+  --gold-light: #f59e0b;
+}
+
+@keyframes gold-flow {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-flow {
+    animation: none;
+  }
+}
+
+/* Push-in feedback for every clickable button-like control. Uses the `scale` property
+   rather than `transform` so it composes with hover transforms (the social icons grow on
+   hover) instead of replacing them. Each control lists `scale` in its own transition so
+   both the press and the release animate. */
+.btn:active,
+.resume:active,
+.social:active,
+.github-badge:active,
+.pill:active,
+.chip:active {
+  scale: 0.94;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active,
+  .resume:active,
+  .social:active,
+  .github-badge:active,
+  .pill:active,
+  .chip:active {
+    scale: 1;
+  }
+}
+
 /* Shared button glow: a soft halo at rest that turns gold on hover/focus. Used by the
-   Button component and the projects page's GitHub badge link. */
+   Button component and the other button-like controls (Resume, GitHub badge, filter
+   button and chips). Controls using it must not set their own `transition`, which would
+   override this one and drop the glow animation. */
 .glow-btn {
   box-shadow: 0 0 14px var(--glow-rest);
-  transition: box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease, background 0.3s ease, scale 0.15s ease;
 }
 
 .glow-btn:hover,

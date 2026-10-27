@@ -26,12 +26,12 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         <li><a href={link.href} aria-current={currentPath === link.href ? 'page' : undefined}>{link.label}</a></li>
       ))}
       <li>
-        <span class="soon" title="Interactive Cisco CLI simulator — coming soon">Coming Soon</span>
+        <span class="soon gold-flow" title="Interactive Cisco CLI simulator — coming soon">Coming Soon</span>
       </li>
     </ul>
   </nav>
   <div class="nav-actions">
-    <a class="resume" href="/Mustafa-Hasnain-Resume.pdf" download title="Download resume (PDF)">Resume</a>
+    <a class="resume glow-btn" href="/Mustafa-Hasnain-Resume.pdf" download title="Download resume (PDF)">Resume</a>
     {socials.map(({ icon, label, href, brand, external }) => (
       <a
         class="social"
@@ -79,14 +79,15 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     color: var(--color-text);
     white-space: nowrap;
     justify-self: start;
-    transition: text-shadow 0.3s ease;
+    transition: text-shadow 0.3s ease, scale 0.15s ease;
   }
 
   .nav > nav {
     grid-area: nav;
   }
 
-  .logo:hover {
+  .logo:hover,
+  .logo:focus-visible {
     text-shadow: var(--nav-hover-glow);
   }
 
@@ -105,15 +106,31 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     justify-content: center;
   }
 
+  /* inline-block because `scale` has no effect on inline boxes, and the links need it
+     for the same press-in as the buttons (see the :active rule below). */
   nav a {
+    display: inline-block;
     color: var(--color-text-secondary);
     font-size: 1.05rem;
-    transition: color 0.2s ease, text-shadow 0.3s ease;
+    transition: color 0.2s ease, text-shadow 0.3s ease, scale 0.15s ease;
   }
 
-  nav a:hover {
+  nav a:hover,
+  nav a:focus-visible {
     color: var(--color-accent);
     text-shadow: var(--nav-hover-glow);
+  }
+
+  nav a:active,
+  .logo:active {
+    scale: 0.94;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    nav a:active,
+    .logo:active {
+      scale: 1;
+    }
   }
 
   nav a[aria-current='page'] {
@@ -121,16 +138,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     font-weight: 600;
   }
 
-  /* "Coming Soon": a flowing gold gradient with a fixed (non-pulsing) glow.
-     The middle colour is the site accent (same gold as the project titles). The gradient
-     is horizontal (90deg) and starts/ends on the same colour: an angled gradient leaves
-     mismatched colours along the tile edges and shows a hard line as it repeats.
-     The position moves exactly one tile width (200% of a 200% background). */
+  /* "Coming Soon": the flowing gold look comes from .gold-flow in global.css (shared
+     with the gold Button); only the badge's own shape and type are set here. */
   .soon {
-    --soon-deep: #f6c026;
-    --soon-base: var(--color-accent);
-    --soon-light: #fee89a;
-
     display: inline-flex;
     align-items: center;
     padding: 0.55rem 1.2rem;
@@ -140,39 +150,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
-    color: #1c1100;
-    background: linear-gradient(
-      90deg,
-      var(--soon-deep) 0%,
-      var(--soon-base) 25%,
-      var(--soon-light) 50%,
-      var(--soon-base) 75%,
-      var(--soon-deep) 100%
-    );
-    background-size: 200% 100%;
-    animation: soon-flow 4.5s linear infinite;
-    box-shadow: 0 0 22px rgb(var(--accent-rgb) / 0.5);
-  }
-
-  /* On the light theme the accent is a deeper amber, so the shades shift with it. */
-  :global([data-theme='light']) .soon {
-    --soon-deep: #b45309;
-    --soon-light: #f59e0b;
-  }
-
-  @keyframes soon-flow {
-    from {
-      background-position: 0% 50%;
-    }
-    to {
-      background-position: 200% 50%;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .soon {
-      animation: none;
-    }
   }
 
   .nav-actions {
@@ -194,7 +171,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     border: 1px solid var(--color-border);
     background: var(--color-bg-secondary);
     color: var(--color-text);
-    transition: color 0.2s ease, border-color 0.2s ease;
   }
 
   .resume:hover,
@@ -212,7 +188,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     display: inline-flex;
     color: var(--color-text);
     filter: drop-shadow(0 0 4px rgb(var(--glow-rgb) / 0.35)) drop-shadow(0 0 0 rgb(var(--glow-rgb) / 0));
-    transition: filter 0.3s ease, transform 0.2s ease;
+    transition: filter 0.3s ease, transform 0.2s ease, scale 0.15s ease;
   }
 
   .social:hover,

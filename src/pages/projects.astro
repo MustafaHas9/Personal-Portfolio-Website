@@ -17,19 +17,19 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
 
 <Layout
   title="Projects | Mustafa Hasnain"
-  description="Active Directory home lab and Raspberry Pi network monitoring: real infrastructure projects, the problems I hit, and how I fixed them."
+  description="Home lab and infrastructure projects: Active Directory, Raspberry Pi monitoring and services, and a CCNA CLI trainer."
 >
   <section class="page">
     <h1>Projects</h1>
 
     <div class="filter-wrap">
-      <button type="button" id="filter-toggle" class="pill" aria-expanded="false" aria-controls="filter-panel">
+      <button type="button" id="filter-toggle" class="pill glow-btn" aria-expanded="false" aria-controls="filter-panel">
         Filter by skill
         <Icon name="chevron" size={14} class="chevron" />
       </button>
       <div class="filters" id="filter-panel" role="group" aria-label="Filter by skill" hidden>
         {allTags.map((tag) => (
-          <button type="button" class="chip" data-tag={tag} aria-pressed="false">{tag}</button>
+          <button type="button" class="chip glow-btn" data-tag={tag} aria-pressed="false">{tag}</button>
         ))}
       </div>
     </div>
@@ -161,7 +161,6 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease;
   }
 
   .pill:hover,
@@ -210,7 +209,6 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
     background: var(--color-bg-secondary);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
   }
 
   .chip:hover {
