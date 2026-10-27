@@ -17,10 +17,10 @@
     },
     "credlyUrl": "https://www.credly.com/badges/891c11fa-bb5b-4050-ae3c-730c94fcd3b5/public_url"
   },
-  "security-plus": {
+  "ccna": {
     "order": 3,
-    "name": "CompTIA Security+",
+    "name": "Cisco CCNA",
     "status": "upcoming",
-    "label": "Expected October 2026"
+    "label": "Expected January 2027"
   }
 }
