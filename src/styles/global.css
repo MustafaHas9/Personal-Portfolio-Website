@@ -36,6 +36,11 @@
   --text-glow-white: 0 0 0 transparent;
   --text-glow-gold: 0 0 14px rgb(217 119 6 / 0.35);
 
+  /* Flowing gradient stops and text colour for .gold-flow, per theme. */
+  --gold-deep: #b45309;
+  --gold-light: #f59e0b;
+  --gold-ink: #1c1100;
+
   /* Spacing scale (8px steps). Use these instead of one-off rem values so every
      page shares the same rhythm. */
   --space-xs: 0.5rem; /* 8  */
@@ -65,6 +70,10 @@
 
   --text-glow-white: 0 0 18px rgb(255 255 255 / 0.2);
   --text-glow-gold: 0 0 16px rgb(252 211 77 / 0.5);
+
+  --gold-deep: #f6c026;
+  --gold-light: #fee89a;
+  --gold-ink: #1c1100;
 }
 
 *,
@@ -161,10 +170,7 @@ h4 {
    mismatched colours along the tile edges and shows a hard line as it repeats.
    The position moves exactly one tile width (200% of a 200% background). */
 .gold-flow {
-  --gold-deep: #f6c026;
   --gold-base: var(--color-accent);
-  --gold-light: #fee89a;
-  --gold-ink: #1c1100;
 
   color: var(--gold-ink);
   background: linear-gradient(
@@ -178,12 +184,6 @@ h4 {
   background-size: 200% 100%;
   animation: gold-flow 4.5s linear infinite;
   box-shadow: 0 0 22px rgb(var(--accent-rgb) / 0.5);
-}
-
-/* On the light theme the accent is a deeper amber, so the shades shift with it. */
-[data-theme='light'] .gold-flow {
-  --gold-deep: #b45309;
-  --gold-light: #f59e0b;
 }
 
 @keyframes gold-flow {

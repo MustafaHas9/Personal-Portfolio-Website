@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Packet Pilot</title>
+<style>
+/* Dark panels around a bright, drawn scene. The scene sets --accent when it changes, so
+   buttons, the meter and focus rings pick up the setting's colour. Corners stay small on
+   purpose: boxy, not pilly. */
+:root{
+  --bg:#12161b; --panel:#1a1f26; --panel2:#222831; --line:#343c47;
+  --text:#ece7da; --dim:#98a1ab;
+  --accent:#e8b44c; --accent-ink:#1c1405;
+  --good:#7fcf86; --bad:#ec6f64;
+  --radius:8px;
+  --font-ui:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --font-display:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  --font-mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 var(--font-ui);min-height:100vh;padding:10px 14px 12px}
+.shell{max-width:1560px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:28px;height:28px;flex:none}
+.brand h1{margin:0;font:600 1.4rem/1 var(--font-display);letter-spacing:.01em}
+.hud{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.lab{display:block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.stat b{font:600 1.05rem/1.1 var(--font-mono)}
+.ttl{display:flex;align-items:center;gap:10px}
+.meter{width:150px;height:10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+.meter i{display:block;height:100%;width:100%;background:var(--good);transition:width .45s ease,background-color .3s}
+.meter.mid i{background:var(--accent)}
+.meter.low i{background:var(--bad)}
+.ttl b{font:600 1.15rem/1 var(--font-mono);min-width:2ch;text-align:right}
+.ttl.hit b{animation:hit .5s}
+@keyframes hit{30%{color:var(--bad);transform:scale(1.25)}}
+.btn{border:1px solid var(--line);background:var(--panel2);padding:6px 12px;border-radius:var(--radius);transition:border-color .15s,background-color .15s,scale .12s}
+.btn:hover{border-color:var(--accent)}
+.btn:active{scale:.96}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+
+/* ---------- menu ---------- */
+.menu{display:grid;gap:22px}
+.menu .lead{max-width:44rem;margin:0;color:var(--dim);font-size:1.02rem}
+.menu fieldset{border:0;margin:0;padding:0}
+.menu legend{padding:0;margin-bottom:10px;font:600 1.05rem/1.2 var(--font-display)}
+.choices{display:grid;gap:10px}
+.chars{grid-template-columns:repeat(6,minmax(0,1fr))}
+.modes{grid-template-columns:repeat(2,minmax(0,1fr))}
+.scenes{grid-template-columns:repeat(7,minmax(0,1fr))}
+.choice{position:relative;display:block}
+.choice input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.choice .face{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px 10px;height:100%;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);text-align:center;transition:border-color .15s,background-color .15s}
+.choice:hover .face{border-color:#566170}
+.choice input:checked + .face{border-color:var(--accent);background:var(--panel2);box-shadow:inset 0 0 0 1px var(--accent)}
+.choice input:focus-visible + .face{outline:2px solid var(--accent);outline-offset:2px}
+.choice .face svg{width:64px;height:64px}
+.choice .nm{font-weight:600}
+.choice .ds{font-size:.85rem;color:var(--dim)}
+.modes .face{align-items:flex-start;text-align:left;padding:14px 16px}
+.scenes .face svg{width:100%;height:auto;border-radius:5px}
+.go{justify-self:start;padding:12px 28px;font-size:1.05rem}
+.best-line{margin:0;color:var(--dim);font-size:.9rem}
+
+/* ---------- stage ---------- */
+.stage{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#000}
+/* On a short window the map is capped so the question under it still fits without scrolling.
+   Only when opened on its own: inside the Learn page the frame grows to fit, so 100vh there is
+   the frame's own height and would shrink the map for no reason. */
+.solo .stage{max-width:max(520px,calc((100vh - 285px) * 1.786))}
+.stage svg{display:block;width:100%;height:auto}
+.stage svg.enter{animation:fadein .7s ease}
+@keyframes fadein{from{opacity:.15}to{opacity:1}}
+.node{cursor:pointer;outline:none}
+.node .ring{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:7 6;opacity:0}
+.node.current .ring{opacity:1;animation:spin 14s linear infinite}
+.node.inspected .ring{opacity:.55}
+.node:focus-visible .ring{opacity:1;stroke-dasharray:none}
+.node:hover .glyph{filter:brightness(1.08)}
+@keyframes spin{to{stroke-dashoffset:-260}}
+.lbl{font:700 18px var(--font-ui);fill:#fff;stroke:rgba(18,22,27,.8);stroke-width:5px;paint-order:stroke;stroke-linejoin:round;pointer-events:none}
+.vtag{font:700 13px var(--font-mono);fill:#fff;pointer-events:none}
+/* interface names sit on the road just outside each building, so "Out Fa0/3" can be found on the map */
+.ifl{font:700 16px var(--font-mono);fill:#fff;stroke:rgba(18,22,27,.85);stroke-width:5px;paint-order:stroke;stroke-linejoin:round;pointer-events:none}
+.beacon{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.c1{fill:var(--c1)}.c2{fill:var(--c2)}.c3{fill:var(--c3)}.c4{fill:var(--c4)}.c5{fill:var(--c5)}.c6{fill:var(--c6)}
+.k1{fill:none;stroke:var(--c1)}.k2{fill:none;stroke:var(--c2)}.k3{fill:none;stroke:var(--c3)}.k5{fill:none;stroke:var(--c5)}
+.pk-tag rect{fill:rgba(18,22,27,.88);stroke:var(--accent);stroke-width:1.5}
+.pk-tag text{font:700 13px var(--font-mono);fill:#fff}
+.pk .flip{transition:none}
+.pk.walking .body{animation:bob .34s ease-in-out infinite}
+.pk.walking .f1{animation:stepa .34s ease-in-out infinite}
+.pk.walking .f2{animation:stepa .34s ease-in-out infinite .17s}
+@keyframes bob{50%{transform:translateY(-2.5px)}}
+@keyframes stepa{50%{transform:translateY(-4px)}}
+.pk .who.shake{animation:shake .45s}
+.pk .who.hop{animation:hop .5s}
+@keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes hop{35%{transform:translateY(-14px)}70%{transform:translateY(0)}85%{transform:translateY(-4px)}}
+.float{font:700 24px var(--font-mono);paint-order:stroke;stroke:rgba(18,22,27,.85);stroke-width:5px;stroke-linejoin:round;animation:floatup 1.3s ease-out forwards;pointer-events:none}
+.float.neg{fill:#ff8277}.float.pos{fill:#9be59f}
+@keyframes floatup{from{transform:translateY(0);opacity:1}to{transform:translateY(-38px);opacity:0}}
+.flag{animation:flutter 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:left center}
+@keyframes flutter{50%{transform:skewY(-8deg)}}
+.banner{position:absolute;left:12px;top:12px;max-width:calc(100% - 24px);padding:7px 12px;border-radius:6px;
+  background:rgba(18,22,27,.82);border:1px solid var(--line);font-size:.92rem;pointer-events:none}
+.banner b{color:var(--accent);font-weight:600}
+
+/* ---------- panels ---------- */
+/* The map takes whatever width is left; the headers and tables are a fixed narrow column. That
+   keeps the game as large as the screen allows and still on one screen. It stacks when narrow. */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:12px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.col{display:grid;gap:10px;min-width:0}
+#q{min-height:10.5rem}
+.card h3{margin:0 0 6px;font:600 1rem/1.2 var(--font-display)}
+.card h3 small{font:400 .82rem var(--font-ui);color:var(--dim);margin-left:6px}
+
+.hdr{display:grid;gap:8px}
+.hdr .grp{display:grid;gap:5px}
+.hdr .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px}
+.cell{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;min-width:0}
+.cell .lab{font-size:.62rem}
+.cell .v{font:600 .74rem/1.3 var(--font-mono);overflow-wrap:anywhere}
+.cell.flash{animation:flash 1.1s}
+.cell.dim .v{color:var(--dim)}
+@keyframes flash{0%{background:var(--accent);color:var(--accent-ink)}100%{background:var(--panel2)}}
+.cell.flash .v{animation:flashtxt 1.1s}
+@keyframes flashtxt{0%{color:var(--accent-ink)}}
+
+.q-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:4px;font-size:.78rem;color:var(--dim)}
+.prompt{margin:0 0 8px;font:600 1.02rem/1.35 var(--font-display)}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:6px 10px;border:1px solid var(--line);
+  border-radius:var(--radius);background:var(--panel2);transition:border-color .15s,background-color .15s,scale .12s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:active:not(:disabled){scale:.97}
+.opt kbd{flex:none;font:600 .78rem var(--font-mono);color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:0 6px;margin-top:2px}
+.opt .ot{display:block;font-weight:600;overflow-wrap:anywhere}
+.opt .os{display:block;font:.8rem var(--font-mono);color:var(--dim);overflow-wrap:anywhere}
+.opt.right{border-color:var(--good);background:rgba(127,207,134,.12)}
+.opt.wrong{border-color:var(--bad);background:rgba(236,111,100,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fb{margin-top:8px;padding:7px 10px;border-radius:6px;border-left:3px solid var(--line);background:var(--panel2);font-size:.88rem;line-height:1.4}
+.fb.good{border-color:var(--good)}
+.fb.bad{border-color:var(--bad)}
+.fb .pen{font:600 .85rem var(--font-mono);color:var(--bad)}
+.actions{margin-top:8px;display:flex;gap:10px;align-items:center}
+
+.ledger dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0 0 6px}
+.ledger dt{color:var(--dim);font-size:.85rem}
+.ledger dd{margin:0;font:.82rem var(--font-mono);overflow-wrap:anywhere}
+.ledger h4{margin:8px 0 4px;font:600 .72rem var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.ledger table{width:100%;border-collapse:collapse;font:.76rem var(--font-mono)}
+.ledger th{text-align:left;font:600 .72rem var(--font-ui);color:var(--dim);padding:2px 8px 4px 0}
+.ledger td{padding:2px 6px 2px 0;border-top:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.ledger tr.fresh td{color:var(--accent)}
+.ledger .hint{margin:6px 0 0;font-size:.78rem;color:var(--dim)}
+.ledger .none{color:var(--dim);font-size:.85rem}
+
+/* ---------- game over ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,12,15,.72);display:flex;align-items:center;justify-content:center;padding:20px;z-index:5}
+.overlay .card{max-width:420px;width:100%;padding:22px}
+.overlay h2{margin:0 0 6px;font:600 1.6rem/1.2 var(--font-display)}
+.overlay p{margin:0 0 14px;color:var(--dim)}
+.overlay .big{font:600 2.4rem/1 var(--font-mono);color:var(--text);margin-bottom:4px}
+.overlay .row{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .chars{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .scenes{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .layout{grid-template-columns:minmax(0,1fr)}
+  #q{min-height:0}
+  .solo .stage{max-width:none}
+}
+@media (max-width:640px){
+  .scenes{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  body{padding:14px 12px 22px}
+  .opts{grid-template-columns:minmax(0,1fr)}
+  .lbl{font-size:27px}
+  .pk-tag text{font-size:18px}
+  .vtag{font-size:19px}
+  .ifl{font-size:22px}
+  .modes{grid-template-columns:minmax(0,1fr)}
+  .meter{width:90px}
+  .hud{gap:12px}
+  .brand h1{font-size:1.4rem}
+  /* On a phone the map is small, so the banner sits under it instead of covering the top row. */
+  .banner{position:static;max-width:none;border:0;border-top:1px solid var(--line);border-radius:0;background:var(--panel)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="7" width="28" height="20" rx="3" fill="#e8b44c"/><path d="M3 10l14 10L31 10" fill="none" stroke="#1c1405" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      <h1>Packet Pilot</h1>
+    </div>
+    <div class="hud" id="hud" hidden>
+      <div class="ttl" id="ttlBox"><span class="lab">TTL</span><div class="meter" id="meter"><i id="meterFill"></i></div><b id="ttlNum">30</b></div>
+      <div class="stat"><span class="lab">Delivered</span><b id="delivered">0</b></div>
+      <div class="stat"><span class="lab">Best</span><b id="best">0</b></div>
+      <button class="btn" id="menuBtn" type="button">Menu</button>
+    </div>
+  </header>
+
+  <section class="menu" id="menu" aria-label="Set up a run">
+    <p class="lead" id="lead"></p>
+    <fieldset><legend>Your Packet</legend><div class="choices chars" id="chars" role="radiogroup"></div></fieldset>
+    <fieldset><legend>Mode</legend><div class="choices modes" id="modes" role="radiogroup"></div></fieldset>
+    <fieldset><legend>Setting</legend><div class="choices scenes" id="scenes" role="radiogroup"></div></fieldset>
+    <button class="btn primary go" id="start" type="button">Start</button>
+    <p class="best-line" id="bestLine"></p>
+  </section>
+
+  <section id="play" class="layout" hidden>
+    <div class="col">
+      <div class="stage">
+        <svg id="scene" viewBox="0 0 1000 560" role="img" aria-label="Map of the network. Select a building to see its tables."></svg>
+        <div class="banner" id="banner"></div>
+      </div>
+      <div class="card" id="q"></div>
+    </div>
+    <div class="col">
+      <div class="card hdr" id="hdr" aria-label="Packet headers"></div>
+      <aside class="card ledger" id="ledger" aria-label="Device tables"></aside>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="over" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+    <h2 id="overTitle"></h2>
+    <p id="overWhy"></p>
+    <div class="big" id="overScore"></div>
+    <p id="overBest"></p>
+    <div class="row"><button class="btn primary" id="again" type="button">Go again</button><button class="btn" id="toMenu" type="button">Change setup</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* PURE START — rules and round generation. No DOM in here, so it can be tested on its own. */
+
+/* ------------------------------------------------------------------------------------
+   DRAFT WORDING. Everything the game says lives in this one block so it can be rewritten
+   without touching the logic. The facts are right; the tone is a placeholder for Mustafa.
+   ------------------------------------------------------------------------------------ */
+var T = {
+  intro: "You are Packet, crossing a network. At every stop you decide what happens to you. Wrong turns burn TTL, and at zero you're gone.",
+  easy: ["Easy", "TTL refills a little after every delivery."],
+  hard: ["Hard", "One TTL pool for the whole run. It never refills."],
+  deliverTo: function(d, ip){ return "Deliver to <b>" + d + "</b> at " + ip; },
+
+  hostQ: function(h, ip){ return h + " is sending to " + ip + ". Which MAC address goes in the Ethernet destination field?"; },
+  hostOkLocal: function(ip, cidr, lo, hi){ return ip + " is inside " + cidr + " (" + lo + " to " + hi + "), so it is on the same subnet. The host ARPs for the destination and sends straight to its MAC."; },
+  hostOkRemote: function(ip, cidr, lo, hi, gw){ return ip + " is outside " + cidr + " (" + lo + " to " + hi + "), so it is on another subnet. The host sends to its default gateway, " + gw + ", and the router takes it from there."; },
+  hostWhyBroadcast: "Broadcast is for ARP requests. A data frame goes to one specific MAC.",
+  hostWhyGateway: function(gw){ return "The destination is on the local subnet. There is no reason to hand it to the gateway (" + gw + ")."; },
+  hostWhyRemoteHost: function(d){ return d + "'s MAC only means something on " + d + "'s own subnet. From here the frame has to go to the gateway."; },
+  hostWhyOther: function(o){ return "That is " + o + "'s MAC, not the destination's."; },
+
+  swQ: function(sw, port, vl){ return "The frame comes in on " + port + (vl ? " (VLAN " + vl + ")" : "") + ". What does " + sw + " do with it?"; },
+  swOkKnown: function(mac, port){ return mac + " is in the MAC table on " + port + ". The switch learned it when the ARP reply came back through here, so it sends the frame out that port only."; },
+  swOkFlood: function(mac){ return mac + " is not in the MAC table. The sender still had it cached from earlier, but a switch forgets an address after about five minutes without hearing from it. With no entry, the switch floods the frame out every other port, and learns where the destination is when it answers."; },
+  hostArped: function(ip){ return " The host had no entry for " + ip + ", so it broadcast an ARP request asking who owns that IP. The reply is now in its ARP cache, and the switch learned both MACs as the ARP passed through."; },
+  hostCached: function(ip){ return " The host already had " + ip + " in its ARP cache from earlier, so it did not need to ask again."; },
+  routerArped: function(ip){ return " The router had no entry for " + ip + ", so it sent an ARP request out that interface and cached the reply."; },
+  routerCached: function(ip){ return " The router already had " + ip + " in its ARP cache from earlier."; },
+  swWhyFlood: function(port){ return "The table already says where the destination is (" + port + "). A known destination is never flooded."; },
+  swWhyOther: function(mac, right, port){ return "The table lists " + mac + " on " + right + ", not " + port + "."; },
+  swWhyGuess: function(port){ return "The switch has no entry for the destination, so it cannot know that " + port + " is the right one. It floods."; },
+  swWhyDrop: "A switch only drops a frame whose destination is on the port it came in on. That is not the case here.",
+
+  rtQ: function(r, ip){ return r + " needs a route for " + ip + ". Which interface does it use?"; },
+  rtOkConn: function(cidr, ifn){ return cidr + " is the longest match for the destination, and it is directly connected on " + ifn + "."; },
+  rtOkVia: function(cidr, via, ifn){ return cidr + " is the longest match for the destination. Its next hop, " + via + ", is reached out " + ifn + "."; },
+  rtWhyShorter: function(m, best){ return m + " matches too, but " + best + " is longer, and the longest match always wins."; },
+  rtWhyBack: "That is the interface the frame came in on, and no route sends the destination back that way.",
+  rtWhyNone: function(ip, ifn){ return "No route for " + ip + " points out " + ifn + "."; },
+  rtWhyDrop: "A route matches, so the router has a place to send it.",
+
+  rwQ: function(r, ifn){ return r + " sends the packet out " + ifn + ". What do the headers look like as it leaves?"; },
+  rwOk: function(s, d){ return "The router builds a brand new Ethernet frame: " + s + " as the source and " + d + " as the destination. TTL drops by 1. The IP addresses do not change."; },
+  rwWhyOldSrc: function(o){ return o + " was the source on the previous hop. Every hop writes its own MAC as the source."; },
+  rwWhyOldDst: function(o){ return o + " was the destination on the previous hop. That frame ended at this router."; },
+  rwWhyFinalDst: function(o){ return o + " is not on the next link. The next hop is a router, so the frame is addressed to that router's MAC."; },
+  rwWhyTtl: "Every router hop subtracts 1 from TTL.",
+  rwWhyIp: "A router leaves the IP addresses alone. Rewriting them is NAT, and nothing here is doing NAT.",
+
+  vlTrunkQ: function(sw, port, v){ return "The frame comes in on " + port + ", an access port in VLAN " + v + ". The way to the router is a trunk. What goes out on it?"; },
+  vlTrunkOk: function(v, t){ return "A trunk carries many VLANs, so the switch adds an 802.1Q tag. The tag is the VLAN of the port the frame came in on: VLAN " + v + ". Out " + t + ", tagged."; },
+  vlWhyUntagged: "An untagged frame on a trunk counts as native VLAN traffic. The router would not know which VLAN it belongs to.",
+  vlWhyWrongTag: function(v){ return "The tag is the VLAN of the port the frame entered on. VLAN " + v + " is not it."; },
+  vlWhyNoCross: function(d){ return d + " is in a different VLAN. A switch never moves frames between VLANs by itself. That takes a router."; },
+  vlRwOk: function(v){ return "The frame leaves on the VLAN " + v + " subinterface, so it goes back down the trunk tagged VLAN " + v + ". TTL drops by 1."; },
+  vlWhyOldTag: function(v){ return "It leaves on the subinterface for the destination's VLAN, so it is tagged with that VLAN, not VLAN " + v + "."; },
+  vlWhyUntaggedRw: "The link back to the switch is a trunk. The frame has to carry a tag.",
+  vlBackQ: function(sw, port, v){ return "The frame comes back in on trunk " + port + " tagged VLAN " + v + ", headed for a host. What goes out?"; },
+  vlBackOk: function(port){ return "The MAC table has the destination on " + port + ", an access port. Access ports carry plain frames, so the tag is removed on the way out."; },
+  vlWhyKept: "A host does not understand 802.1Q tags. Access ports always send untagged frames.",
+  vlWhyTrunkBack: "The destination is on an access port. Sending the frame back up the trunk goes nowhere useful.",
+  vlWhyOtherPort: function(p){ return "The destination is not on " + p + "."; },
+
+  delivered: function(d){ return "Delivered to " + d + "."; },
+  deadExpired: function(r){ return "TTL reached 0 at " + r + ". The router drops the packet."; },
+  deadWrong: "Too many wrong turns. TTL ran out.",
+  refill: function(n){ return "+" + n + " TTL"; }
+};
+
+/* ---------- small helpers ---------- */
+var rnd = function(n){ return Math.floor(Math.random() * n); };
+var pick = function(a){ return a[rnd(a.length)]; };
+var shuffle = function(a){ var r = a.slice(); for(var i = r.length - 1; i > 0; i--){ var j = rnd(i + 1); var t = r[i]; r[i] = r[j]; r[j] = t; } return r; };
+var BCAST = "FF:FF:FF:FF:FF:FF";
+
+var ip2n = function(s){ return s.split(".").reduce(function(a, b){ return a * 256 + (+b); }, 0); };
+var n2ip = function(n){ return [Math.floor(n / 16777216) % 256, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join("."); };
+var maskN = function(p){ return p === 0 ? 0 : (0xFFFFFFFF << (32 - p)) >>> 0; };
+var netOf = function(ip, p){ return (ip2n(ip) & maskN(p)) >>> 0; };
+var sameNet = function(a, b, p){ return netOf(a, p) === netOf(b, p); };
+var cidrOf = function(net, p){ return n2ip(net) + "/" + p; };
+
+function makeMac(R){
+  var m;
+  do {
+    var b = [];
+    for(var i = 0; i < 6; i++) b.push(("0" + rnd(256).toString(16)).slice(-2).toUpperCase());
+    b[0] = ("0" + (parseInt(b[0], 16) & 0xFE).toString(16)).slice(-2).toUpperCase();
+    m = b.join(":");
+  } while(R.macs[m]);
+  R.macs[m] = true;
+  return m;
+}
+
+/* ---------- topology pieces ---------- */
+function addNode(R, kind, label, x, y){
+  var n = { id: label, kind: kind, label: label, x: x, y: y, ifaces: [], mac: null, ip: null, prefix: null, gw: null, routes: [], vlan: null, table: [], arp: [] };
+  if(kind === "host"){ n.mac = makeMac(R); R.owner[n.mac] = label; }
+  R.nodes.push(n); R.byId[label] = n;
+  return n;
+}
+function autoName(n){
+  if(n.kind === "host") return "NIC";
+  if(n.kind === "switch") return "Fa0/" + (n.ifaces.filter(function(f){ return !f.trunk; }).length + 1);
+  return "Gi0/" + n.ifaces.length;
+}
+function addIface(R, n, name){
+  var f = { name: name || autoName(n), node: n, mac: null, ip: null, prefix: null, peer: null, vlan: null, trunk: false };
+  if(n.kind === "host") f.mac = n.mac;
+  if(n.kind === "router"){ f.mac = makeMac(R); R.owner[f.mac] = n.label + " " + f.name; }
+  n.ifaces.push(f);
+  return f;
+}
+function connect(R, a, b, an, bn, trunk){
+  var ia = addIface(R, a, an), ib = addIface(R, b, bn);
+  ia.peer = ib; ib.peer = ia; ia.trunk = ib.trunk = !!trunk;
+  R.links.push({ a: a.id, b: b.id, trunk: !!trunk, an: ia.name, bn: ib.name });
+  return [ia, ib];
+}
+/* A switch learns a source MAC on the port a frame arrives on; a device caches IP-to-MAC answers. */
+function learn(sw, mac, port, fresh){
+  sw.table = sw.table.filter(function(e){ return e.mac !== mac; });
+  sw.table.push({ mac: mac, port: port, fresh: !!fresh });
+}
+function cacheArp(n, ip, mac, fresh){
+  n.arp = n.arp.filter(function(e){ return e.ip !== ip; });
+  n.arp.push({ ip: ip, mac: mac, fresh: !!fresh });
+}
+function neighborMac(f){
+  var p = f.peer.node;
+  return p.kind === "host" ? p.mac : p.kind === "router" ? f.peer.mac : null;
+}
+
+/* Subnet planning. Half the time at levels above the first, the LANs are adjacent small blocks
+   carved from one /24, so the addresses look like they belong together when they do not. */
+function randomParent(used){
+  var net;
+  do {
+    var k = rnd(3);
+    net = k === 0 ? ip2n("192.168." + rnd(250) + ".0") : k === 1 ? ip2n("10." + rnd(250) + "." + rnd(250) + ".0") : ip2n("172." + (16 + rnd(16)) + "." + rnd(250) + ".0");
+  } while(used[net]);
+  used[net] = true;
+  return net;
+}
+function mkLan(net, prefix){
+  var size = Math.pow(2, 32 - prefix);
+  return { net: net, prefix: prefix, size: size, used: {}, router: null, sw: null, vlan: null,
+    gwIp: n2ip(net + 1), cidr: cidrOf(net, prefix),
+    alloc: function(){
+      var a;
+      do { a = net + 2 + rnd(size - 3); } while(this.used[a]);
+      this.used[a] = true;
+      return n2ip(a);
+    } };
+}
+function planLans(count, sneaky){
+  var used = {}, lans = [];
+  if(sneaky && count >= 2){
+    var p = count === 3 ? pick([26, 27]) : pick([25, 26, 27]);
+    var size = Math.pow(2, 32 - p), per = 256 / size;
+    var parent = randomParent(used), start = rnd(per - count + 1);
+    for(var i = 0; i < count; i++) lans.push(mkLan(parent + (start + i) * size, p));
+  } else {
+    for(var j = 0; j < count; j++) lans.push(mkLan(randomParent(used), pick([24, 24, 25, 26])));
+  }
+  return lans;
+}
+function addHost(R, label, x, y, lan, sw){
+  var h = addNode(R, "host", label, x, y);
+  h.ip = lan.alloc(); h.prefix = lan.prefix;
+  h.gw = lan.router ? lan.gwIp : null;
+  h.vlan = lan.vlan;
+  var f = connect(R, sw, h)[0];
+  f.vlan = lan.vlan;
+  return h;
+}
+function lanRouterIface(R, router, sw, lan){
+  var f = connect(R, router, sw)[0];
+  f.ip = lan.gwIp; f.prefix = lan.prefix;
+  lan.router = router; lan.sw = sw;
+  return f;
+}
+function twoOf(a){ var s = shuffle(a); return [s[0], s[1]]; }
+
+/* ---------- routing ---------- */
+function hits(rt, ip){ return ((ip2n(ip) & maskN(rt.prefix)) >>> 0) === rt.net; }
+function lookup(r, ip){
+  var best = null;
+  r.routes.forEach(function(rt){ if(hits(rt, ip) && (!best || rt.prefix > best.prefix)) best = rt; });
+  return best;
+}
+function mkRoute(code, net, prefix, iface, via){
+  return { code: code, net: net, prefix: prefix, iface: iface, via: via || null, cidr: cidrOf(net, prefix) };
+}
+function nextRouterToward(R, from, target){
+  /* BFS over routers only; returns the neighbouring router to go through. */
+  var seen = {}, queue = [[from, null]];
+  seen[from.id] = true;
+  while(queue.length){
+    var cur = queue.shift(), n = cur[0], first = cur[1];
+    if(n === target) return first;
+    n.ifaces.forEach(function(f){
+      var p = f.peer.node;
+      if(p.kind === "router" && !seen[p.id]){ seen[p.id] = true; queue.push([p, first || { router: p, iface: f }]); }
+    });
+  }
+  return null;
+}
+function buildRoutes(R){
+  var routers = R.nodes.filter(function(n){ return n.kind === "router"; });
+  routers.forEach(function(r){
+    r.routes = [];
+    (r.subs || r.ifaces).forEach(function(f){ if(f.ip) r.routes.push(mkRoute("C", netOf(f.ip, f.prefix), f.prefix, f)); });
+  });
+  routers.forEach(function(r){
+    var statics = [];
+    R.lans.forEach(function(lan){
+      if(!lan.router || lan.router === r) return;
+      var hop = nextRouterToward(R, r, lan.router);
+      if(hop) statics.push(mkRoute("S", lan.net, lan.prefix, hop.iface, hop.iface.peer.ip));
+    });
+    var hops = {};
+    statics.forEach(function(s){ hops[s.via] = true; });
+    var leaf = Object.keys(hops).length === 1;
+    if(leaf && statics.length && Math.random() < 0.5){
+      var s0 = statics[0];
+      r.routes.push(mkRoute("S*", 0, 0, s0.iface, s0.via));
+    } else {
+      statics.forEach(function(s){ r.routes.push(s); });
+    }
+  });
+}
+
+/* ---------- graph path ---------- */
+function pathBetween(R, a, b){
+  var seen = {}, queue = [[a]];
+  seen[a.id] = true;
+  while(queue.length){
+    var p = queue.shift(), n = p[p.length - 1];
+    if(n === b) return p;
+    n.ifaces.forEach(function(f){
+      var q = f.peer.node;
+      if(!seen[q.id]){ seen[q.id] = true; queue.push(p.concat([q])); }
+    });
+  }
+  return null;
+}
+
+/* ---------- questions ---------- */
+function ownerOf(R, mac){ return R.owner[mac] || mac; }
+function lanText(ip, prefix){
+  var net = netOf(ip, prefix), size = Math.pow(2, 32 - prefix);
+  return { cidr: cidrOf(net, prefix), lo: n2ip(net), hi: n2ip(net + size - 1) };
+}
+function finishOptions(opts){
+  /* One right answer, every wrong one explained, no two options reading the same. */
+  var seen = {};
+  opts.forEach(function(o){ var k = o.text + "|" + (o.sub || ""); if(seen[k]) throw new Error("duplicate option " + k); seen[k] = true; });
+  return shuffle(opts);
+}
+
+function hostStep(R, src, dst, gwIf, cached, hop){
+  var local = sameNet(src.ip, dst.ip, src.prefix);
+  var tIp = local ? dst.ip : src.gw, tMac = local ? dst.mac : gwIf.mac;
+  if(cached) cacheArp(src, tIp, tMac, false);
+  var sw = src.ifaces[0].peer.node;
+  var mates = sw.ifaces.map(function(f){ return f.peer.node; }).filter(function(n){ return n.kind === "host" && n !== src && n !== dst; });
+  var info = lanText(src.ip, src.prefix);
+  var gwName = gwIf ? gwIf.node.label + " " + gwIf.name : null;
+  return { kind: "host", at: src.id, ask: function(st){
+    var ok, opts = [];
+    if(local){
+      ok = { text: dst.label, sub: dst.mac, ok: true, mac: dst.mac };
+      if(gwIf) opts.push({ text: gwName, sub: gwIf.mac, ok: false, why: T.hostWhyGateway(gwIf.ip) });
+      if(mates.length) opts.push({ text: mates[0].label, sub: mates[0].mac, ok: false, why: T.hostWhyOther(mates[0].label) });
+    } else {
+      ok = { text: gwName, sub: gwIf.mac, ok: true, mac: gwIf.mac };
+      opts.push({ text: dst.label, sub: dst.mac, ok: false, why: T.hostWhyRemoteHost(dst.label) });
+      if(mates.length) opts.push({ text: mates[0].label, sub: mates[0].mac, ok: false, why: T.hostWhyOther(mates[0].label) });
+    }
+    opts.push({ text: "Broadcast", sub: BCAST, ok: false, why: T.hostWhyBroadcast });
+    opts.push(ok);
+    return {
+      prompt: T.hostQ(src.label, dst.ip),
+      options: finishOptions(opts),
+      good: (local ? T.hostOkLocal(dst.ip, info.cidr, info.lo, info.hi) : T.hostOkRemote(dst.ip, info.cidr, info.lo, info.hi, src.gw)) + (cached ? T.hostCached(tIp) : T.hostArped(tIp)),
+      apply: function(s){
+        s.hdr.dstMac = ok.mac;
+        if(!cached){
+          cacheArp(src, tIp, tMac, true);
+          // the request was a broadcast from src and the reply came back from the target, so the switch heard both
+          if(hop){ hop.sw.table.forEach(function(e){ e.fresh = false; }); learn(hop.sw, src.mac, hop.inIf.name, true); learn(hop.sw, tMac, hop.outIf.name, true); }
+        }
+        return ["dstMac"];
+      }
+    };
+  } };
+}
+
+function switchStep(R, sw, inIf, outIf, cached){
+  /* The destination is in the table when the sender just ARPed (the reply taught the switch).
+     It is missing when the sender's ARP entry was cached and the switch's own entry aged out. */
+  var known = !cached;
+  var others = sw.ifaces.filter(function(f){ return f !== inIf; });
+  sw.table = [];
+  others.forEach(function(f){
+    if(f !== outIf && Math.random() < 0.6){ var m = neighborMac(f); if(m) learn(sw, m, f.name, false); }
+  });
+  var vl = inIf.vlan ? "VLAN " + inIf.vlan + " " : "";
+  return { kind: "switch", at: sw.id, ask: function(st){
+    var dstMac = st.hdr.dstMac, srcMac = st.hdr.srcMac;
+    sw.table.forEach(function(e){ e.fresh = false; });
+    learn(sw, srcMac, inIf.name, true);           // every frame teaches the switch where its sender is
+    if(known) learn(sw, dstMac, outIf.name, false);
+    else sw.table = sw.table.filter(function(e){ return e.mac !== dstMac; });
+    var flood = "Flood: every " + vl + "port except " + inIf.name;
+    var drop = { text: "Drop the frame", ok: false, why: T.swWhyDrop };
+    var opts;
+    if(known){
+      var wrong = [{ text: flood, ok: false, why: T.swWhyFlood(outIf.name) }, drop];
+      shuffle(others.filter(function(f){ return f !== outIf; })).slice(0, 2).forEach(function(f){
+        wrong.push({ text: "Out " + f.name + " only", ok: false, why: T.swWhyOther(dstMac, outIf.name, f.name) });
+      });
+      opts = [{ text: "Out " + outIf.name + " only", ok: true }].concat(shuffle(wrong).slice(0, 3));
+    } else {
+      var wrong2 = [drop];
+      shuffle(others).slice(0, 2).forEach(function(f){
+        wrong2.push({ text: "Out " + f.name + " only", ok: false, why: T.swWhyGuess(f.name) });
+      });
+      opts = [{ text: flood, ok: true }].concat(shuffle(wrong2).slice(0, 3));
+    }
+    return {
+      prompt: T.swQ(sw.label, inIf.name, inIf.vlan),
+      options: finishOptions(opts),
+      good: known ? T.swOkKnown(dstMac, outIf.name) : T.swOkFlood(dstMac),
+      apply: function(){ return []; }
+    };
+  } };
+}
+
+function routerEgressStep(R, r, inIf, outIf){
+  return { kind: "route", at: r.id, expect: outIf.name, ask: function(st){
+    var dstIp = st.hdr.dstIp, best = lookup(r, dstIp);
+    var ifs = r.subs || r.ifaces;
+    var matches = r.routes.filter(function(rt){ return hits(rt, dstIp); });
+    var opts = ifs.map(function(f){
+      var o = { text: f.name, sub: f.ip + "/" + f.prefix, ok: f === best.iface };
+      if(!o.ok){
+        var m = matches.filter(function(rt){ return rt.iface === f; })[0];
+        o.why = m ? T.rtWhyShorter(m.cidr, best.cidr) : f === inIf ? T.rtWhyBack : T.rtWhyNone(dstIp, f.name);
+      }
+      return o;
+    });
+    opts.push({ text: "Drop it", sub: "no route", ok: false, why: T.rtWhyDrop });
+    return {
+      prompt: T.rtQ(r.label, dstIp),
+      options: finishOptions(opts),
+      good: best.via ? T.rtOkVia(best.cidr, best.via, best.iface.name) : T.rtOkConn(best.cidr, best.iface.name),
+      apply: function(){ return []; }
+    };
+  } };
+}
+
+function routerRewriteStep(R, r, inIf, outIf, dst, cached){
+  var nIf = outIf.peer, nNode = nIf.node;
+  var hopIp = nNode.kind === "router" ? nIf.ip : dst.ip, hopMac = nNode.kind === "router" ? nIf.mac : dst.mac;
+  if(cached) cacheArp(r, hopIp, hopMac, false);
+  return { kind: "rewrite", at: r.id, ask: function(st){
+    var nextNode = outIf.peer.node;
+    var nextMac = nextNode.kind === "router" ? outIf.peer.mac : dst.mac;
+    var own = function(m){ return ownerOf(R, m); };
+    var mk = function(src, d, dec, ip, ok, why){
+      return { text: "Eth " + own(src) + " → " + own(d), sub: (dec ? "TTL minus 1" : "TTL unchanged") + " · " + ip, ok: ok, why: why };
+    };
+    var same = "IP addresses unchanged";
+    var okOpt = mk(outIf.mac, nextMac, true, same, true);
+    var variants = [
+      mk(st.hdr.srcMac, nextMac, true, same, false, T.rwWhyOldSrc(own(st.hdr.srcMac))),
+      mk(outIf.mac, st.hdr.dstMac, true, same, false, T.rwWhyOldDst(own(st.hdr.dstMac))),
+      mk(outIf.mac, nextMac, false, same, false, T.rwWhyTtl),
+      mk(outIf.mac, nextMac, true, "source IP becomes " + outIf.ip, false, T.rwWhyIp)
+    ];
+    var chosen;
+    if(nextNode.kind === "router"){
+      var fin = mk(outIf.mac, dst.mac, true, same, false, T.rwWhyFinalDst(own(dst.mac)));
+      chosen = [fin].concat(shuffle(variants).slice(0, 2));
+    } else chosen = shuffle(variants).slice(0, 3);
+    return {
+      prompt: T.rwQ(r.label, outIf.name),
+      options: finishOptions([okOpt].concat(chosen)),
+      good: T.rwOk(own(outIf.mac), own(nextMac)) + (cached ? T.routerCached(hopIp) : T.routerArped(hopIp)),
+      apply: function(s){
+        s.hdr.srcMac = outIf.mac; s.hdr.dstMac = nextMac; s.hdr.ttl -= 1;
+        if(!cached){
+          cacheArp(r, hopIp, hopMac, true);
+          // a switch on that link heard the router's ARP request and the destination's reply
+          if(nNode.kind === "switch"){
+            var dp = nNode.ifaces.filter(function(f){ return f.peer.node === dst; })[0];
+            nNode.table.forEach(function(e){ e.fresh = false; });
+            learn(nNode, outIf.mac, nIf.name, true);
+            if(dp) learn(nNode, dst.mac, dp.name, true);
+          }
+        }
+        return ["srcMac", "dstMac", "ttl"];
+      }
+    };
+  } };
+}
+
+/* Router-on-a-stick: one switch, one router, a trunk between them. */
+function vlanAccessStep(R, sw, src, dst, trunkIf, r1phy){
+  var inIf = src.ifaces[0].peer, dstPort = dst.ifaces[0].peer;
+  return { kind: "switch", at: sw.id, ask: function(st){
+    var a = src.vlan, b = dst.vlan;
+    sw.table.forEach(function(e){ e.fresh = false; });
+    learn(sw, st.hdr.srcMac, inIf.name, true);
+    var opts = [
+      { text: "Out " + trunkIf.name + " (trunk), tagged VLAN " + a, ok: true },
+      { text: "Out " + trunkIf.name + " (trunk), untagged", ok: false, why: T.vlWhyUntagged },
+      { text: "Out " + trunkIf.name + " (trunk), tagged VLAN " + b, ok: false, why: T.vlWhyWrongTag(b) },
+      { text: "Out " + dstPort.name + " only", ok: false, why: T.vlWhyNoCross(dst.label) }
+    ];
+    return {
+      prompt: T.vlTrunkQ(sw.label, inIf.name, a),
+      options: finishOptions(opts),
+      good: T.vlTrunkOk(a, trunkIf.name),
+      apply: function(s){ s.hdr.vlan = a; return ["vlan"]; }
+    };
+  } };
+}
+function vlanRewriteStep(R, r, inIf, outIf, dst, r1phy){
+  return { kind: "rewrite", at: r.id, ask: function(st){
+    var own = function(m){ return ownerOf(R, m); }, a = st.hdr.vlan, b = outIf.vlan;
+    var line = function(dec, tag, ok, why){ return { text: "Eth " + own(r1phy.mac) + " → " + own(dst.mac), sub: tag + " · " + (dec ? "TTL minus 1" : "TTL unchanged"), ok: ok, why: why }; };
+    var opts = [
+      line(true, "802.1Q VLAN " + b, true),
+      line(true, "802.1Q VLAN " + a, false, T.vlWhyOldTag(a)),
+      line(false, "802.1Q VLAN " + b, false, T.rwWhyTtl),
+      line(true, "no 802.1Q tag", false, T.vlWhyUntaggedRw)
+    ];
+    return {
+      prompt: T.rwQ(r.label, outIf.name),
+      options: finishOptions(opts),
+      good: T.vlRwOk(b),
+      apply: function(s){
+        s.hdr.srcMac = r1phy.mac; s.hdr.dstMac = dst.mac; s.hdr.ttl -= 1; s.hdr.vlan = b;
+        cacheArp(r, dst.ip, dst.mac, true);
+        // the router's ARP request went out the trunk tagged for the destination's VLAN, and the reply came back
+        var sw = r1phy.peer.node;
+        sw.table.forEach(function(e){ e.fresh = false; });
+        learn(sw, dst.mac, dst.ifaces[0].peer.name, true);
+        return ["srcMac", "dstMac", "ttl", "vlan"];
+      }
+    };
+  } };
+}
+function vlanBackStep(R, sw, dst, trunkIf, r1phy, other){
+  sw.table = sw.table || [];
+  var dstPort = dst.ifaces[0].peer, otherPort = other ? other.ifaces[0].peer : null;
+  return { kind: "switch", at: sw.id, ask: function(st){
+    sw.table.forEach(function(e){ e.fresh = false; });
+    learn(sw, st.hdr.srcMac, trunkIf.name, true);
+    var opts = [
+      { text: "Out " + dstPort.name + " only, tag removed", ok: true },
+      { text: "Out " + dstPort.name + " only, tag kept", ok: false, why: T.vlWhyKept },
+      { text: "Out " + trunkIf.name + " (trunk) only", ok: false, why: T.vlWhyTrunkBack }
+    ];
+    if(otherPort) opts.push({ text: "Out " + otherPort.name + " only, tag removed", ok: false, why: T.vlWhyOtherPort(otherPort.name) });
+    return {
+      prompt: T.vlBackQ(sw.label, trunkIf.name, st.hdr.vlan),
+      options: finishOptions(opts),
+      good: T.vlBackOk(dstPort.name),
+      apply: function(s){ s.hdr.vlan = null; return ["vlan"]; }
+    };
+  } };
+}
+
+/* ---------- round builders ---------- */
+function planGeneric(R, src, dst){
+  var path = pathBetween(R, src, dst), steps = [];
+  var gwIf = null;
+  if(src.gw){
+    R.nodes.forEach(function(n){ if(n.kind === "router") (n.subs || n.ifaces).forEach(function(f){ if(f.ip === src.gw) gwIf = f; }); });
+  }
+  /* Roughly a quarter of the time the sender already has the answer in its ARP cache. Then the
+     switch beyond it, which forgets after five minutes, is the one that has to flood. */
+  var senderCached = Math.random() < 0.28;
+  var first = path[1], firstIn = first.ifaces.filter(function(f){ return f.peer.node === path[0]; })[0];
+  var firstOut = first.ifaces.filter(function(f){ return f.peer.node === path[2]; })[0];
+  steps.push(hostStep(R, src, dst, gwIf, senderCached, first.kind === "switch" ? { sw: first, inIf: firstIn, outIf: firstOut } : null));
+  if(first.kind === "switch") first.table = [];
+  for(var i = 1; i < path.length - 1; i++){
+    var n = path[i], prev = path[i - 1], next = path[i + 1];
+    var inIf = n.ifaces.filter(function(f){ return f.peer.node === prev; })[0];
+    var outIf = n.ifaces.filter(function(f){ return f.peer.node === next; })[0];
+    if(n.kind === "switch") steps.push(switchStep(R, n, inIf, outIf, senderCached));
+    else {
+      var rc = Math.random() < 0.28;
+      steps.push(routerEgressStep(R, n, inIf, outIf)); steps.push(routerRewriteStep(R, n, inIf, outIf, dst, rc));
+      senderCached = rc;
+    }
+  }
+  steps.push({ kind: "arrive", at: dst.id });
+  R.src = src; R.dst = dst; R.steps = steps;
+}
+
+function genT0(R){
+  var lan = planLans(1, false)[0];
+  var sw = addNode(R, "switch", "SW1", 500, 262);
+  lan.sw = sw; R.lans = [lan];
+  var pos = [[130, 150], [130, 400], [870, 150], [870, 400]];
+  var hosts = pos.map(function(p, i){ return addHost(R, "PC-" + "ABCD".charAt(i), p[0], p[1], lan, sw); });
+  var sd = twoOf(hosts);
+  planGeneric(R, sd[0], sd[1]);
+}
+function genT1(R){
+  var lans = planLans(2, Math.random() < 0.5), la = lans[0], lb = lans[1];
+  var sw1 = addNode(R, "switch", "SW1", 280, 275), r1 = addNode(R, "router", "R1", 500, 275), sw2 = addNode(R, "switch", "SW2", 720, 275);
+  lanRouterIface(R, r1, sw1, la); lanRouterIface(R, r1, sw2, lb);
+  R.lans = lans;
+  var A = [addHost(R, "PC-A", 110, 150, la, sw1), addHost(R, "PC-B", 110, 410, la, sw1)];
+  var B = [addHost(R, "PC-C", 890, 150, lb, sw2), addHost(R, "PC-D", 890, 410, lb, sw2)];
+  buildRoutes(R);
+  var left = Math.random() < 0.5, sameSide = Math.random() < 0.2;
+  var from = pick(left ? A : B), to = sameSide ? (left ? A : B).filter(function(h){ return h !== from; })[0] : pick(left ? B : A);
+  planGeneric(R, from, to);
+}
+function genT2(R){
+  var withC = Math.random() < 0.65, cOn = Math.random() < 0.5 ? "r1" : "r2";
+  var lans = planLans(withC ? 3 : 2, Math.random() < 0.4), la = lans[0], lb = lans[1], lc = lans[2];
+  var sw1 = addNode(R, "switch", "SW1", 235, 250), r1 = addNode(R, "router", "R1", 410, 250);
+  var r2 = addNode(R, "router", "R2", 590, 250), sw2 = addNode(R, "switch", "SW2", 765, 250);
+  lanRouterIface(R, r1, sw1, la); lanRouterIface(R, r2, sw2, lb);
+  var tn = ip2n("10.255." + rnd(200) + ".0");
+  var t = connect(R, r1, r2);
+  t[0].ip = n2ip(tn + 1); t[1].ip = n2ip(tn + 2); t[0].prefix = t[1].prefix = 30;
+  R.lans = lans.slice(0, 2);
+  var hosts = [addHost(R, "PC-A", 75, 130, la, sw1), addHost(R, "PC-B", 75, 380, la, sw1),
+               addHost(R, "PC-C", 925, 130, lb, sw2), addHost(R, "PC-D", 925, 380, lb, sw2)];
+  if(withC){
+    var cx = cOn === "r1" ? 410 : 590;
+    var sw3 = addNode(R, "switch", "SW3", cx, 385);
+    lanRouterIface(R, cOn === "r1" ? r1 : r2, sw3, lc);
+    R.lans.push(lc);
+    hosts.push(addHost(R, "PC-E", cx - 150, 480, lc, sw3), addHost(R, "PC-F", cx + 150, 480, lc, sw3));
+  }
+  buildRoutes(R);
+  var sd, tries = 0;
+  do { sd = twoOf(hosts); } while(tries++ < 20 && sameNet(sd[0].ip, sd[1].ip, sd[0].prefix) && Math.random() < 0.85);
+  planGeneric(R, sd[0], sd[1]);
+}
+function genT3(R){
+  var vs = shuffle([10, 20, 30, 40]).slice(0, 3);
+  var lans = planLans(3, false);
+  lans.forEach(function(l, i){ l.vlan = vs[i]; });
+  var sw = addNode(R, "switch", "SW1", 500, 235), r1 = addNode(R, "router", "R1", 500, 455);
+  var trunk = connect(R, r1, sw, "Gi0/0", "Gi0/1", true), phy = trunk[0], trunkIf = trunk[1];
+  r1.subs = lans.map(function(l){
+    l.router = r1; l.sw = sw;
+    return { name: "Gi0/0." + l.vlan, node: r1, mac: phy.mac, ip: l.gwIp, prefix: l.prefix, vlan: l.vlan, sub: true };
+  });
+  R.lans = lans;
+  var A = [addHost(R, "PC-A", 130, 150, lans[0], sw), addHost(R, "PC-B", 130, 400, lans[0], sw)];
+  var B = [addHost(R, "PC-C", 870, 150, lans[1], sw), addHost(R, "PC-D", 870, 400, lans[1], sw)];
+  buildRoutes(R);
+  if(Math.random() < 0.3){
+    var grp = Math.random() < 0.5 ? A : B, s0 = shuffle(grp);
+    planGeneric(R, s0[0], s0[1]);
+    return;
+  }
+  var left = Math.random() < 0.5, src = pick(left ? A : B), dst = pick(left ? B : A);
+  var srcSub = r1.subs.filter(function(s){ return s.vlan === src.vlan; })[0];
+  var dstSub = r1.subs.filter(function(s){ return s.vlan === dst.vlan; })[0];
+  var otherHost = (left ? B : A).filter(function(h){ return h !== dst; })[0];
+  R.src = src; R.dst = dst; sw.table = [];
+  R.steps = [
+    hostStep(R, src, dst, srcSub, false, { sw: sw, inIf: src.ifaces[0].peer, outIf: trunkIf }),
+    vlanAccessStep(R, sw, src, dst, trunkIf, phy),
+    routerEgressStep(R, r1, srcSub, dstSub),
+    vlanRewriteStep(R, r1, srcSub, dstSub, dst, phy),
+    vlanBackStep(R, sw, dst, trunkIf, phy, otherHost),
+    { kind: "arrive", at: dst.id }
+  ];
+}
+
+function generateRound(tier){
+  var R = { tier: tier, nodes: [], byId: {}, links: [], owner: {}, macs: {}, lans: [], steps: [], src: null, dst: null };
+  [genT0, genT1, genT2, genT3][tier](R);
+  if(Math.random() < 0.5) R.nodes.forEach(function(n){ n.x = 1000 - n.x; });
+  return R;
+}
+function pickTier(delivered){
+  var u = delivered < 1 ? 0 : delivered < 3 ? 1 : delivered < 5 ? 2 : 3;
+  var w = [1, 2, 3, 4].slice(0, u + 1), total = w.reduce(function(a, b){ return a + b; }, 0), x = rnd(total);
+  for(var i = 0; i < w.length; i++){ if(x < w[i]) return i; x -= w[i]; }
+  return u;
+}
+
+/* PURE END */
+
+/* ------------------------------------------------------------------------------------
+   Art. Every building is drawn in a 100 x 100 box with its base near y = 90, using six
+   colour slots (c1..c6) that each setting fills in. Hosts are small dwellings, switches are
+   low and wide gathering places, routers are the tall lookout structures, and that stays true
+   in every setting so the network is readable whatever the scenery.
+   ------------------------------------------------------------------------------------ */
+var GLYPH = {
+  mountains: {
+    host: '<rect class="c3" x="63" y="24" width="9" height="18"/><rect class="c5" x="22" y="46" width="56" height="42"/>' +
+      '<path d="M22 56H78M22 66H78M22 76H78" stroke="#000" stroke-opacity=".18" stroke-width="1.5"/><path class="c2" d="M11 52L50 19L89 52Z"/>' +
+      '<path d="M27 39L50 19L73 39L67 41L50 27L33 41Z" fill="#fff" opacity=".93"/><rect class="c3" x="44" y="62" width="13" height="26"/>' +
+      '<rect class="c4" x="27" y="56" width="12" height="12"/><rect class="c4" x="62" y="56" width="11" height="12"/>',
+    "switch": '<rect class="c5" x="8" y="52" width="84" height="36"/><path d="M8 62H92M8 72H92M8 82H92" stroke="#000" stroke-opacity=".18" stroke-width="1.5"/>' +
+      '<path class="c2" d="M2 56L50 28L98 56Z"/><path d="M20 47L50 28L80 47L74 49L50 35L26 49Z" fill="#fff" opacity=".93"/>' +
+      '<rect class="c3" x="42" y="64" width="16" height="24"/><rect class="c4" x="15" y="60" width="14" height="12"/><rect class="c4" x="71" y="60" width="14" height="12"/>',
+    router: '<path class="c1" d="M32 90L37 40H63L68 90Z"/><path d="M35 62H65M33.5 76H66.5" stroke="#000" stroke-opacity=".18" stroke-width="1.5"/>' +
+      '<path class="c3" d="M31 40V28h7v5h6v-5h12v5h6v-5h7v12Z"/><rect class="c3" x="47" y="56" width="6" height="12" rx="3"/>' +
+      '<rect class="c3" x="48.5" y="22" width="3" height="7"/><circle class="c4 beacon" cx="50" cy="18" r="6"/>'
+  },
+  fields: {
+    host: '<rect class="c3" x="62" y="26" width="8" height="16"/><rect class="c1" x="22" y="48" width="56" height="40"/><path class="c2" d="M13 52L50 22L87 52Z"/>' +
+      '<rect class="c3" x="44" y="62" width="13" height="26"/><rect class="c4" x="28" y="58" width="11" height="11"/><rect class="c4" x="62" y="58" width="11" height="11"/>' +
+      '<path d="M28 63.5H39M33.5 58V69M62 63.5H73M67.5 58V69" stroke="#6a4a36" stroke-width="1.3"/><circle class="c4" cx="50" cy="40" r="4"/>',
+    "switch": '<path class="c2" d="M14 88V50L30 32H70L86 50V88Z"/><path class="k1" stroke-width="3" d="M14 50L30 32H70L86 50"/><rect class="c1" x="36" y="56" width="28" height="32"/>' +
+      '<path class="k2" stroke-width="3" d="M36 56L64 88M64 56L36 88"/><rect class="c1" x="43" y="40" width="14" height="9"/><rect class="c3" x="46" y="42.5" width="8" height="4"/>',
+    router: '<path class="c1" d="M36 90L43 46H57L64 90Z"/><path d="M38.5 74H61.5M41 60H59" stroke="#000" stroke-opacity=".15" stroke-width="1.5"/>' +
+      '<path class="c2" d="M38 46L50 32L62 46Z"/><rect class="c3" x="46" y="72" width="8" height="18"/>' +
+      '<g><animateTransform attributeName="transform" type="rotate" from="0 50 40" to="360 50 40" dur="20s" repeatCount="indefinite"/>' +
+      '<g><rect class="c5" x="48.5" y="4" width="3" height="36"/><rect class="c1" x="51.5" y="6" width="9" height="15"/></g>' +
+      '<g transform="rotate(90 50 40)"><rect class="c5" x="48.5" y="4" width="3" height="36"/><rect class="c1" x="51.5" y="6" width="9" height="15"/></g>' +
+      '<g transform="rotate(180 50 40)"><rect class="c5" x="48.5" y="4" width="3" height="36"/><rect class="c1" x="51.5" y="6" width="9" height="15"/></g>' +
+      '<g transform="rotate(270 50 40)"><rect class="c5" x="48.5" y="4" width="3" height="36"/><rect class="c1" x="51.5" y="6" width="9" height="15"/></g></g>' +
+      '<circle class="c3" cx="50" cy="40" r="3.5"/>'
+  },
+  coast: {
+    host: '<rect class="c3" x="62" y="30" width="7" height="14"/><rect class="c1" x="24" y="50" width="52" height="38"/><path class="c2" d="M16 54L50 26L84 54Z"/>' +
+      '<rect class="c6" x="44" y="64" width="13" height="24"/><circle class="c3" cx="33" cy="66" r="6"/><circle class="c4" cx="33" cy="66" r="3.6"/>' +
+      '<circle class="c3" cx="67" cy="66" r="6"/><circle class="c4" cx="67" cy="66" r="3.6"/>',
+    "switch": '<rect class="c5" x="12" y="50" width="76" height="34"/><path d="M12 60H88M12 70H88" stroke="#000" stroke-opacity=".18" stroke-width="1.5"/>' +
+      '<path class="c3" d="M6 54L50 28L94 54Z"/><path class="c6" d="M36 84V68Q50 56 64 68V84Z"/><path class="c1" d="M42 78H58L55 82H45Z"/>' +
+      '<rect class="c5" x="2" y="84" width="96" height="6"/><rect class="c3" x="6" y="80" width="4" height="12"/><rect class="c3" x="90" y="80" width="4" height="12"/>',
+    router: '<path d="M57 25L96 12V38Z" fill="#fff6c0" opacity=".3"/><path d="M43 25L4 12V38Z" fill="#fff6c0" opacity=".3"/>' +
+      '<ellipse class="c5" cx="50" cy="90" rx="28" ry="5"/><path class="c1" d="M36 90L42 34H58L64 90Z"/>' +
+      '<path class="c2" d="M38.7 68L61.3 68L62.3 80L37.7 80Z"/><path class="c2" d="M41 46L59 46L60 58L40.3 58Z"/>' +
+      '<rect class="c3" x="39" y="30" width="22" height="5"/><rect class="c4 beacon" x="43" y="20" width="14" height="11"/><path class="c2" d="M41 20L50 8L59 20Z"/>'
+  },
+  forest: {
+    host: '<rect class="c5" x="44" y="52" width="12" height="38"/><circle class="c6" cx="30" cy="48" r="18"/><circle class="c6" cx="70" cy="48" r="18"/>' +
+      '<circle class="c1" cx="50" cy="34" r="26"/><rect class="c2" x="36" y="34" width="28" height="22"/><path class="c3" d="M32 36L50 20L68 36Z"/>' +
+      '<rect class="c4" x="45" y="40" width="10" height="10"/><path class="k5" stroke-width="2.4" d="M58 56L63 88M63 56L69 88M59 66H66M60 76H68"/>',
+    "switch": '<ellipse class="c3" cx="50" cy="80" rx="36" ry="12" opacity=".3"/>' +
+      '<rect class="c5" x="6" y="80" width="18" height="8" rx="3"/><rect class="c5" x="76" y="80" width="18" height="8" rx="3"/>' +
+      '<g fill="#8b8f91"><circle cx="24" cy="76" r="5"/><circle cx="34" cy="86" r="5"/><circle cx="50" cy="90" r="5"/><circle cx="66" cy="86" r="5"/><circle cx="76" cy="76" r="5"/><circle cx="68" cy="68" r="4"/><circle cx="32" cy="68" r="4"/></g>' +
+      '<rect class="c5" x="30" y="74" width="40" height="7" rx="3" transform="rotate(-14 50 78)"/><rect class="c5" x="30" y="74" width="40" height="7" rx="3" transform="rotate(14 50 78)"/>' +
+      '<path class="c2" d="M50 38C61 52 67 62 61 76H39C33 62 41 52 50 38Z"/><path class="c4" d="M50 54C57 62 58 69 55 76H45C42 69 44 62 50 54Z"/>',
+    router: '<path class="k5" stroke-width="3.5" d="M32 90L40 44M68 90L60 44M36 76H64M34 64H66M36 76L62 64M64 76L38 64"/>' +
+      '<rect class="c2" x="34" y="26" width="32" height="18"/><path class="c3" d="M30 27L50 12L70 27Z"/><rect class="c4" x="42" y="31" width="16" height="8"/>' +
+      '<circle class="c4 beacon" cx="50" cy="8" r="3.6"/>'
+  },
+  desert: {
+    host: '<rect class="c1" x="22" y="46" width="56" height="42"/><rect class="c5" x="18" y="42" width="64" height="7"/>' +
+      '<path class="k5" stroke-width="3" stroke-linecap="round" d="M32 42v-6M44 42v-8M56 42v-6M68 42v-8"/>' +
+      '<path class="c3" d="M43 88V70a7 7 0 0 1 14 0V88Z"/><rect class="c3" x="28" y="58" width="10" height="10"/><rect class="c3" x="64" y="58" width="9" height="9"/>',
+    "switch": '<ellipse class="c1" cx="50" cy="80" rx="44" ry="14"/><ellipse class="c4" cx="50" cy="80" rx="31" ry="9"/>' +
+      '<path class="k5" stroke-width="3.5" stroke-linecap="round" d="M30 78Q27 52 34 32M70 78Q73 56 66 38"/>' +
+      '<g class="c6"><ellipse cx="22" cy="30" rx="15" ry="4.5" transform="rotate(-18 22 30)"/><ellipse cx="46" cy="28" rx="15" ry="4.5" transform="rotate(18 46 28)"/><ellipse cx="34" cy="22" rx="4.5" ry="13"/>' +
+      '<ellipse cx="58" cy="36" rx="14" ry="4.5" transform="rotate(-18 58 36)"/><ellipse cx="78" cy="34" rx="14" ry="4.5" transform="rotate(20 78 34)"/><ellipse cx="66" cy="28" rx="4.5" ry="12"/></g>',
+    router: '<path class="c1" d="M10 90L50 22L90 90Z"/><path class="c3" opacity=".28" d="M50 22L90 90H50Z"/>' +
+      '<path d="M22 70H78M32 54H68M40 40H60" stroke="#000" stroke-opacity=".12" stroke-width="1.5"/><path class="c3" d="M44 90V76H56V90Z"/><circle class="c4 beacon" cx="50" cy="18" r="4.5"/>'
+  },
+  city: {
+    host: '<rect class="c1" x="26" y="34" width="48" height="54"/><rect class="c3" x="22" y="30" width="56" height="6"/>' +
+      '<rect class="c4" x="32" y="42" width="9" height="9"/><rect class="c4" opacity=".35" x="46" y="42" width="9" height="9"/><rect class="c4" x="60" y="42" width="9" height="9"/>' +
+      '<rect class="c4" opacity=".35" x="32" y="55" width="9" height="9"/><rect class="c4" x="46" y="55" width="9" height="9"/><rect class="c4" opacity=".6" x="60" y="55" width="9" height="9"/>' +
+      '<rect class="c3" x="45" y="72" width="10" height="16"/>',
+    "switch": '<rect class="c3" x="6" y="80" width="88" height="8"/><rect class="c4" opacity=".28" x="14" y="52" width="72" height="28"/>' +
+      '<rect class="c2" x="10" y="44" width="80" height="8"/><rect class="c3" x="14" y="52" width="4" height="28"/><rect class="c3" x="82" y="52" width="4" height="28"/>' +
+      '<rect class="c5" x="26" y="68" width="22" height="4"/><rect class="c3" x="20" y="24" width="3" height="22"/><circle class="c4" cx="21.5" cy="22" r="6"/>',
+    router: '<rect class="c1" x="35" y="28" width="30" height="60"/><rect class="c5" x="39" y="20" width="22" height="8"/><path class="k3" stroke-width="2.5" d="M50 20V6"/>' +
+      '<circle class="c2 beacon" cx="50" cy="5" r="3.2"/>' +
+      '<rect class="c4" opacity=".85" x="39" y="36" width="22" height="4"/><rect class="c4" opacity=".6" x="39" y="46" width="22" height="4"/><rect class="c4" opacity=".85" x="39" y="56" width="22" height="4"/>' +
+      '<rect class="c4" opacity=".6" x="39" y="66" width="22" height="4"/><rect class="c4" opacity=".85" x="39" y="76" width="22" height="4"/><path class="c3" d="M65 38q9 0 9 9z"/>'
+  }
+};
+
+/* Characters, drawn in an 80 x 80 box with their feet at y = 76. Feet are in .f1 / .f2 and
+   everything else in .body, so the walking animation can bob them separately. */
+var CHARS = [
+  { id: "courier", name: "Courier", svg:
+    '<g class="foot f1"><rect x="29" y="64" width="9" height="12" rx="3" fill="#2f3b52"/></g><g class="foot f2"><rect x="42" y="64" width="9" height="12" rx="3" fill="#2f3b52"/></g>' +
+    '<g class="body"><rect x="17" y="38" width="17" height="22" rx="3" fill="#b0773c"/><path d="M17 46h17M25.5 38v22" stroke="#ecd09a" stroke-width="2"/>' +
+    '<rect x="26" y="34" width="28" height="34" rx="9" fill="#e07a3f"/><path d="M40 36v30" stroke="#c4602a" stroke-width="2"/>' +
+    '<circle cx="40" cy="24" r="12" fill="#f1c9a0"/><path d="M27 23a13 13 0 0 1 26 0z" fill="#2f6f8f"/><path d="M44 22h16a2 2 0 0 1 0 4H44z" fill="#245a75"/>' +
+    '<circle cx="46" cy="27" r="1.8" fill="#2b2220"/><path d="M41 32q3 2 6 0" stroke="#a5683f" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>' },
+  { id: "fox", name: "Fox", svg:
+    '<g class="foot f1"><rect x="29" y="66" width="8" height="10" rx="3" fill="#3a2a22"/></g><g class="foot f2"><rect x="43" y="66" width="8" height="10" rx="3" fill="#3a2a22"/></g>' +
+    '<g class="body"><path d="M26 58C8 60 4 40 14 34C14 46 22 48 30 50Z" fill="#e1782f"/><path d="M14 34C8 38 7 46 11 51C12 46 13 40 14 34Z" fill="#f7e3c4"/>' +
+    '<ellipse cx="40" cy="54" rx="15" ry="15" fill="#e1782f"/><ellipse cx="42" cy="58" rx="8" ry="10" fill="#f7e3c4"/>' +
+    '<path d="M24 28C24 14 56 14 56 28C56 36 48 42 40 42C32 42 24 36 24 28Z" fill="#e1782f"/>' +
+    '<path d="M26 22L28 5L39 16Z" fill="#e1782f"/><path d="M54 22L52 5L41 16Z" fill="#e1782f"/><path d="M29 17L30 10L34 15Z" fill="#3a2a22"/><path d="M51 17L50 10L46 15Z" fill="#3a2a22"/>' +
+    '<path d="M24 30C30 32 34 38 40 42C46 38 50 32 56 30C54 38 48 42 40 42C32 42 26 38 24 30Z" fill="#f7e3c4"/>' +
+    '<circle cx="33" cy="28" r="2" fill="#2b2220"/><circle cx="47" cy="28" r="2" fill="#2b2220"/><circle cx="40" cy="37" r="2.4" fill="#2b2220"/></g>' },
+  { id: "bot", name: "Bot", svg:
+    '<g class="foot f1"><rect x="28" y="66" width="11" height="10" rx="3" fill="#56616b"/></g><g class="foot f2"><rect x="41" y="66" width="11" height="10" rx="3" fill="#56616b"/></g>' +
+    '<g class="body"><rect x="15" y="40" width="8" height="18" rx="3" fill="#8497a3"/><rect x="57" y="40" width="8" height="18" rx="3" fill="#8497a3"/>' +
+    '<rect x="23" y="36" width="34" height="31" rx="6" fill="#9fb2bd"/><rect x="30" y="44" width="20" height="13" rx="3" fill="#2f3a42"/>' +
+    '<circle cx="36" cy="50.5" r="2.4" fill="#7bd88f"/><circle cx="44" cy="50.5" r="2.4" fill="#e8b44c"/>' +
+    '<rect x="26" y="12" width="28" height="22" rx="6" fill="#b9c8d0"/><rect x="31" y="19" width="7" height="8" rx="2" fill="#2f3a42"/><rect x="42" y="19" width="7" height="8" rx="2" fill="#2f3a42"/>' +
+    '<circle cx="34.5" cy="23" r="1.6" fill="#8fe3ff"/><circle cx="45.5" cy="23" r="1.6" fill="#8fe3ff"/>' +
+    '<path d="M40 12V5" stroke="#56616b" stroke-width="2.5"/><circle cx="40" cy="4" r="3" fill="#e8584f"/></g>' },
+  { id: "penguin", name: "Penguin", svg:
+    '<g class="foot f1"><ellipse cx="32" cy="74" rx="7.5" ry="3.5" fill="#f0a030"/></g><g class="foot f2"><ellipse cx="48" cy="74" rx="7.5" ry="3.5" fill="#f0a030"/></g>' +
+    '<g class="body"><ellipse cx="40" cy="46" rx="19" ry="28" fill="#2d3748"/><ellipse cx="40" cy="52" rx="12" ry="21" fill="#f4f1ea"/>' +
+    '<path d="M22 42C13 52 14 61 20 63C22 57 24 50 24 45Z" fill="#2d3748"/><path d="M58 42C67 52 66 61 60 63C58 57 56 50 56 45Z" fill="#2d3748"/>' +
+    '<circle cx="34" cy="30" r="3.4" fill="#fff"/><circle cx="46" cy="30" r="3.4" fill="#fff"/><circle cx="35" cy="30.6" r="1.7" fill="#111"/><circle cx="45" cy="30.6" r="1.7" fill="#111"/>' +
+    '<path d="M35.5 35H44.5L40 41Z" fill="#f0a030"/></g>' },
+  { id: "cat", name: "Cat", svg:
+    '<g class="foot f1"><rect x="29" y="66" width="8" height="10" rx="3.5" fill="#827d79"/></g><g class="foot f2"><rect x="43" y="66" width="8" height="10" rx="3.5" fill="#827d79"/></g>' +
+    '<g class="body"><path d="M54 62C74 62 74 40 66 36" stroke="#9a948f" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+    '<ellipse cx="40" cy="54" rx="15" ry="16" fill="#9a948f"/><ellipse cx="40" cy="58" rx="8" ry="10" fill="#d9d4cd"/>' +
+    '<circle cx="40" cy="30" r="14" fill="#9a948f"/><path d="M27 24L28 8L39 18Z" fill="#9a948f"/><path d="M53 24L52 8L41 18Z" fill="#9a948f"/>' +
+    '<path d="M30 19L30.5 13L35 17Z" fill="#e8a9a0"/><path d="M50 19L49.5 13L45 17Z" fill="#e8a9a0"/>' +
+    '<path d="M40 17v6M35 18.5l1 4.5M45 18.5l-1 4.5" stroke="#6f6a66" stroke-width="2" stroke-linecap="round"/>' +
+    '<ellipse cx="34.5" cy="31" rx="2.2" ry="3" fill="#2b2220"/><ellipse cx="45.5" cy="31" rx="2.2" ry="3" fill="#2b2220"/><path d="M38 36H42L40 38.5Z" fill="#e8a9a0"/>' +
+    '<path d="M31 37L22 36M31 39L22 41M49 37L58 36M49 39L58 41" stroke="#e8e3dc" stroke-width="1.2" stroke-linecap="round"/></g>' },
+  { id: "frog", name: "Frog", svg:
+    '<g class="foot f1"><ellipse cx="27" cy="73" rx="10" ry="4" fill="#5a9442"/></g><g class="foot f2"><ellipse cx="53" cy="73" rx="10" ry="4" fill="#5a9442"/></g>' +
+    '<g class="body"><ellipse cx="40" cy="52" rx="21" ry="19" fill="#6aa84f"/><ellipse cx="40" cy="58" rx="12" ry="11" fill="#cfe8a8"/>' +
+    '<circle cx="29" cy="31" r="9.5" fill="#6aa84f"/><circle cx="51" cy="31" r="9.5" fill="#6aa84f"/>' +
+    '<circle cx="29" cy="30" r="6.2" fill="#fff"/><circle cx="51" cy="30" r="6.2" fill="#fff"/><circle cx="30.5" cy="30.5" r="3.2" fill="#1f2a1c"/><circle cx="49.5" cy="30.5" r="3.2" fill="#1f2a1c"/>' +
+    '<path d="M28 47Q40 56 52 47" stroke="#2f5a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>' +
+    '<circle cx="24" cy="56" r="2.6" fill="#559040"/><circle cx="56" cy="58" r="2.6" fill="#559040"/><circle cx="33" cy="42" r="1.6" fill="#559040"/></g>' }
+];
+
+/* Decor, scattered around the buildings each round. Each takes a position and a scale. */
+var D = {
+  pine: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="2" rx="13" ry="4" fill="#000" opacity=".15"/><rect x="-2.5" y="-6" width="5" height="9" fill="#5a4332"/><path d="M0 -46L13 -16H-13Z" fill="#3f6b4a"/><path d="M0 -34L17 -5H-17Z" fill="#35603f"/></g>'; },
+  oak: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="2" rx="16" ry="4.5" fill="#000" opacity=".15"/><rect x="-3" y="-18" width="6" height="21" fill="#6a4a36"/><circle cx="0" cy="-30" r="16" fill="#4f8a45"/><circle cx="-9" cy="-24" r="10" fill="#5a9a4e"/><circle cx="9" cy="-25" r="10" fill="#468040"/></g>'; },
+  rock: function(x, y, s, sc){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="1" rx="15" ry="4" fill="#000" opacity=".15"/><path d="M-13 0L-9 -10L2 -13L12 -6L14 0Z" fill="' + sc.rock + '"/><path d="M2 -13L12 -6L14 0H5Z" fill="#000" opacity=".13"/></g>'; },
+  tuft: function(x, y, s, sc){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')" stroke="' + sc.tuft + '" stroke-width="1.8" stroke-linecap="round" fill="none"><path d="M-5 0Q-6 -6 -8 -9M0 0V-10M5 0Q6 -6 8 -9"/></g>'; },
+  flower: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><path d="M0 0V-7" stroke="#5a8a3e" stroke-width="1.5"/><circle cx="0" cy="-9" r="3.2" fill="#f2d65c"/><circle cx="-3" cy="-8" r="2" fill="#fff"/><circle cx="3" cy="-8" r="2" fill="#fff"/></g>'; },
+  haystack: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="2" rx="17" ry="4.5" fill="#000" opacity=".15"/><path d="M-15 0C-15 -16 -7 -22 0 -22C7 -22 15 -16 15 0Z" fill="#d6b65a"/><path d="M-8 -4Q0 -10 8 -4M-10 -11Q0 -17 10 -11" stroke="#b8963c" stroke-width="1.4" fill="none"/></g>'; },
+  palm: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="2" rx="12" ry="3.5" fill="#000" opacity=".15"/><path d="M0 0Q-4 -22 3 -42" stroke="#8a6a46" stroke-width="5" fill="none" stroke-linecap="round"/><g fill="#4f9a5a"><ellipse cx="-12" cy="-42" rx="14" ry="4" transform="rotate(-24 -12 -42)"/><ellipse cx="18" cy="-41" rx="14" ry="4" transform="rotate(22 18 -41)"/><ellipse cx="3" cy="-52" rx="4" ry="13"/><ellipse cx="-8" cy="-34" rx="12" ry="3.6" transform="rotate(30 -8 -34)"/><ellipse cx="14" cy="-34" rx="12" ry="3.6" transform="rotate(-30 14 -34)"/></g></g>'; },
+  cactus: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="1" rx="11" ry="3.5" fill="#000" opacity=".15"/><rect x="-4" y="-30" width="8" height="31" rx="4" fill="#5f9a58"/><path d="M-4 -14H-10V-22" stroke="#5f9a58" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 -10H10V-18" stroke="#5f9a58" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>'; },
+  mushroom: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><rect x="-2.5" y="-8" width="5" height="9" rx="2" fill="#efe5d2"/><path d="M-9 -7C-9 -17 9 -17 9 -7Z" fill="#c8503f"/><circle cx="-3" cy="-11" r="1.5" fill="#fff"/><circle cx="3" cy="-10" r="1.3" fill="#fff"/></g>'; },
+  fern: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')" stroke="#3f7a47" stroke-width="2.4" stroke-linecap="round" fill="none"><path d="M0 0Q-6 -10 -14 -12M0 0Q0 -12 0 -18M0 0Q6 -10 14 -12"/></g>'; },
+  lamp: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="1" rx="8" ry="2.5" fill="#000" opacity=".2"/><rect x="-1.5" y="-34" width="3" height="35" fill="#2b2d42"/><path d="M0 -34H8" stroke="#2b2d42" stroke-width="3"/><circle cx="8" cy="-32" r="4.5" fill="#ffd166"/><circle cx="8" cy="-32" r="10" fill="#ffd166" opacity=".18"/></g>'; },
+  planter: function(x, y, s){ return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><ellipse cx="0" cy="1" rx="13" ry="3.5" fill="#000" opacity=".18"/><rect x="-9" y="-8" width="18" height="9" fill="#5c677d"/><circle cx="0" cy="-17" r="10" fill="#4b7f52"/><circle cx="-6" cy="-12" r="6" fill="#58905f"/></g>'; }
+};
+
+/* Each setting: palette for the six building colours, sky and ground, the far scenery, and
+   which decor to scatter ([name, count, min scale, max scale]). */
+var SCENES = {
+  mountains: { name: "Mountains", accent: "#e8b44c", names: { host: "cabin", "switch": "lodge", router: "watchtower" },
+    vars: { c1: "#c9d0d3", c2: "#a14a3a", c3: "#463a33", c4: "#ffe39a", c5: "#8c5d3c", c6: "#3f6b4a" },
+    sky: ["#78abd2", "#dcebf2"], ground: "#86a56e", road: "#cbb88f", line: "#f1e7cb", rock: "#9aa09a", tuft: "#6a8a56",
+    decor: [["pine", 9, 0.9, 1.3], ["rock", 4, 0.8, 1.2], ["tuft", 16, 0.8, 1.2]],
+    far: function(){ return '<circle cx="800" cy="64" r="24" fill="#fff4cf" opacity=".95"/>' +
+      '<path d="M0 124L70 66L122 100L192 42L262 102L332 60L402 110L472 72L542 114L622 52L702 106L782 70L862 112L932 62L1000 104V130H0Z" fill="#9db4cc"/>' +
+      '<path d="M192 42L174 66L186 62L192 70L200 62L210 66ZM622 52L604 76L616 71L622 80L630 72L642 76Z" fill="#fff" opacity=".92"/>' +
+      '<path d="M0 128L90 94L170 120L260 90L350 122L450 96L560 126L660 92L760 124L860 98L960 122L1000 108V134H0Z" fill="#7e9a8d"/>'; } },
+  fields: { name: "Fields", accent: "#d9a93f", names: { host: "farmhouse", "switch": "barn", router: "windmill" },
+    vars: { c1: "#f4ead3", c2: "#b4443a", c3: "#654733", c4: "#ffe08a", c5: "#c8a265", c6: "#4f8a45" },
+    sky: ["#8ac4e8", "#eef6e6"], ground: "#b5cf74", road: "#d9c590", line: "#fbf1cf", rock: "#a8a597", tuft: "#7e9c4a",
+    decor: [["oak", 4, 0.9, 1.25], ["haystack", 5, 0.9, 1.2], ["tuft", 14, 0.8, 1.2], ["flower", 16, 0.9, 1.3]],
+    far: function(){ return '<g fill="#fff" opacity=".85"><ellipse cx="180" cy="50" rx="52" ry="14"/><ellipse cx="215" cy="42" rx="34" ry="14"/><ellipse cx="660" cy="68" rx="60" ry="15"/><ellipse cx="700" cy="58" rx="36" ry="13"/></g>' +
+      '<path d="M0 118C120 78 250 88 380 112C500 134 580 82 720 94C840 104 920 88 1000 110V130H0Z" fill="#a9cf7c"/>' +
+      '<path d="M0 128C140 100 300 110 430 124C560 138 700 104 840 116C920 122 960 118 1000 124V134H0Z" fill="#92bd68"/>'; } },
+  coast: { name: "Coast", accent: "#5bb5d5", names: { host: "cottage", "switch": "boathouse", router: "lighthouse" },
+    vars: { c1: "#f6f1e6", c2: "#c64f3f", c3: "#34495e", c4: "#ffe9a3", c5: "#b58859", c6: "#4aa3c4" },
+    sky: ["#86cbe8", "#f3f7ee"], ground: "#ecdcab", road: "#cdb98c", line: "#f9f0d6", rock: "#a49a88", tuft: "#a3a05a",
+    decor: [["palm", 3, 0.9, 1.2], ["rock", 5, 0.7, 1.1], ["tuft", 8, 0.8, 1.1]],
+    far: function(){
+      var foam = "M0 122", i;
+      for(i = 0; i < 25; i++) foam += "q20 -8 40 0";
+      return '<circle cx="200" cy="52" r="20" fill="#fff6d0" opacity=".95"/><rect y="64" width="1000" height="62" fill="#58a9ca"/><rect y="64" width="1000" height="10" fill="#7bc1dc"/>' +
+        '<path d="M600 92V60L626 92Z" fill="#fff"/><path d="M595 94H634L628 100H601Z" fill="#8a5a3b"/><path d="M820 88V66L838 88Z" fill="#fff"/><path d="M816 90H842L838 95H820Z" fill="#8a5a3b"/>' +
+        '<path d="' + foam + '" stroke="#fff" stroke-width="3" fill="none" opacity=".75"/>'; } },
+  forest: { name: "Forest", accent: "#9bcf6a", names: { host: "treehouse", "switch": "campfire", router: "lookout tower" },
+    vars: { c1: "#4a8a52", c2: "#b27a3a", c3: "#33281f", c4: "#ffcf66", c5: "#7a5535", c6: "#2f6140" },
+    sky: ["#a9cdb4", "#e6efd9"], ground: "#5f8451", road: "#b49a6c", line: "#d9c79d", rock: "#8c918a", tuft: "#4a7a40",
+    decor: [["pine", 11, 1, 1.4], ["mushroom", 6, 0.9, 1.3], ["fern", 9, 0.9, 1.3], ["rock", 3, 0.8, 1.1]],
+    far: function(){
+      var a = "", b = "", x, h;
+      for(x = -10; x < 1020; x += 34){ h = 46 + 26 * Math.abs(Math.sin(x * 0.07)); a += '<path d="M' + x + ' 124L' + (x + 17) + ' ' + (124 - h) + 'L' + (x + 34) + ' 124Z"/>'; }
+      for(x = 8; x < 1020; x += 40){ h = 38 + 22 * Math.abs(Math.cos(x * 0.05)); b += '<path d="M' + x + ' 128L' + (x + 20) + ' ' + (128 - h) + 'L' + (x + 40) + ' 128Z"/>'; }
+      return '<g fill="#7aa388" opacity=".8">' + a + '</g><g fill="#4f7f5e">' + b + '</g>' +
+        '<path d="M180 0L260 140H230Z M520 0L600 140H565Z M820 0L890 140H860Z" fill="#fff" opacity=".07"/>'; } },
+  desert: { name: "Desert", accent: "#e38f4d", names: { host: "adobe hut", "switch": "oasis", router: "pyramid" },
+    vars: { c1: "#e8c690", c2: "#c9824a", c3: "#654433", c4: "#7ed0d8", c5: "#a97a4c", c6: "#5f9a58" },
+    sky: ["#f2a97a", "#fbe4b8"], ground: "#ebc88c", road: "#c99d63", line: "#f2dcae", rock: "#c58f5c", tuft: "#a08a4c",
+    decor: [["cactus", 6, 0.9, 1.3], ["rock", 4, 0.8, 1.3], ["tuft", 9, 0.8, 1.1]],
+    far: function(){ return '<circle cx="210" cy="70" r="52" fill="#fff0bf" opacity=".28"/><circle cx="210" cy="70" r="38" fill="#fff0bf"/>' +
+      '<path d="M0 118C110 82 210 84 330 116C430 90 530 66 650 108C770 82 890 86 1000 114V130H0Z" fill="#e0a45f"/>' +
+      '<path d="M0 128C130 104 260 110 400 126C560 108 700 100 860 122L1000 124V134H0Z" fill="#d79a52"/>'; } },
+  city: { name: "City", accent: "#f2b96b", names: { host: "apartment", "switch": "tram stop", router: "tower" },
+    vars: { c1: "#8d99ae", c2: "#e4572e", c3: "#2b2d42", c4: "#ffd166", c5: "#5c677d", c6: "#4b7f52" },
+    sky: ["#3b4a78", "#f0b07f"], ground: "#8d95a3", road: "#4b505c", line: "#e8e2d0", rock: "#7d8493", tuft: "#7d8493",
+    decor: [["lamp", 6, 0.9, 1.2], ["planter", 5, 0.9, 1.2]],
+    far: function(){
+      var back = "", front = "", wins = "", x, h, k;
+      for(x = 0; x < 1000; x += 44){ h = 34 + 40 * Math.abs(Math.sin(x * 0.031 + 1)); back += '<rect x="' + x + '" y="' + (124 - h) + '" width="40" height="' + h + '"/>'; }
+      for(x = 14; x < 1000; x += 56){
+        h = 30 + 54 * Math.abs(Math.cos(x * 0.043));
+        front += '<rect x="' + x + '" y="' + (126 - h) + '" width="46" height="' + h + '"/>';
+        for(k = 0; k < h - 14; k += 12) if(Math.sin(x * 3 + k) > 0.1) wins += '<rect x="' + (x + 8 + (k % 24 ? 18 : 0)) + '" y="' + (126 - h + 8 + k) + '" width="6" height="6"/>';
+      }
+      return '<circle cx="840" cy="56" r="16" fill="#fdf3c8"/><g fill="#53608f">' + back + '</g><g fill="#2c3556">' + front + '</g><g fill="#ffd166" opacity=".8">' + wins + '</g>'; } }
+};
+var SCENE_IDS = ["mountains", "fields", "coast", "forest", "desert", "city"];
+var VCOL = ["#e0a43a", "#4aa3c8", "#b565c2"];
+
+/* ---------- small DOM helpers ---------- */
+var $ = function(id){ return document.getElementById(id); };
+var store = {
+  get: function(k, d){ try { var v = localStorage.getItem("packetPilot-" + k); return v === null ? d : v; } catch(e){ return d; } },
+  set: function(k, v){ try { localStorage.setItem("packetPilot-" + k, v); } catch(e){} }
+};
+var REDUCED = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+var MODES = { easy: { max: 30, refill: 8, penalty: 3 }, hard: { max: 30, refill: 0, penalty: 3 } };
+var GROUND = 118;
+var varStyle = function(sc){ return Object.keys(sc.vars).map(function(k){ return "--" + k + ":" + sc.vars[k]; }).join(";"); };
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function segDist(px, py, ax, ay, bx, by){
+  var dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l)) : 0;
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+var S = { char: store.get("char", "courier"), mode: store.get("mode", "easy"), setting: store.get("setting", "journey"),
+  scene: "mountains", ttl: 30, delivered: 0, round: null, stepIdx: 0, st: null, q: null, answered: false, inspect: null, roundsHere: 0, dead: false };
+if(!MODES[S.mode]) S.mode = "easy";
+if(!CHARS.some(function(c){ return c.id === S.char; })) S.char = "courier";
+if(S.setting !== "journey" && !SCENES[S.setting]) S.setting = "journey";
+
+/* ---------- menu ---------- */
+function choice(group, value, checked, art, name, desc){
+  return '<label class="choice"><input type="radio" name="' + group + '" value="' + value + '"' + (checked ? " checked" : "") + '><span class="face">' + art +
+    '<span class="nm">' + name + '</span>' + (desc ? '<span class="ds">' + desc + '</span>' : "") + '</span></label>';
+}
+function miniScene(id){
+  var sc = SCENES[id];
+  return '<svg viewBox="0 0 120 76" aria-hidden="true" style="' + varStyle(sc) + '"><defs><linearGradient id="mg-' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + sc.sky[0] + '"/><stop offset="1" stop-color="' + sc.sky[1] + '"/></linearGradient></defs>' +
+    '<rect width="120" height="76" fill="url(#mg-' + id + ')"/><rect y="42" width="120" height="34" fill="' + sc.ground + '"/>' +
+    '<g transform="translate(5 26) scale(.4)">' + GLYPH[id].host + '</g><g transform="translate(75 26) scale(.4)">' + GLYPH[id].host + '</g><g transform="translate(34 6) scale(.56)">' + GLYPH[id].router + '</g></svg>';
+}
+function journeyTile(){
+  var ids = ["mountains", "coast", "desert", "city"], out = '<svg viewBox="0 0 120 76" aria-hidden="true"><defs>';
+  ids.forEach(function(id){ var sc = SCENES[id]; out += '<linearGradient id="jg-' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + sc.sky[0] + '"/><stop offset="1" stop-color="' + sc.sky[1] + '"/></linearGradient>'; });
+  out += '</defs>';
+  ids.forEach(function(id, i){
+    var sc = SCENES[id];
+    out += '<g style="' + varStyle(sc) + '"><svg x="' + (i * 30) + '" width="30" height="76" viewBox="' + (i * 30) + ' 0 30 76"><rect x="' + (i * 30) + '" width="30" height="76" fill="url(#jg-' + id + ')"/><rect x="' + (i * 30) + '" y="42" width="30" height="34" fill="' + sc.ground + '"/></svg>' +
+      '<g transform="translate(' + (i * 30 + 3) + ' 22) scale(.24)">' + GLYPH[id].router + '</g></g>';
+  });
+  return out + '<path d="M4 64Q30 52 60 62T116 56" stroke="#fff" stroke-width="2" stroke-dasharray="4 4" fill="none" opacity=".8"/></svg>';
+}
+function buildMenu(){
+  $("lead").textContent = T.intro;
+  $("chars").innerHTML = CHARS.map(function(c){ return choice("char", c.id, S.char === c.id, '<svg viewBox="0 0 80 80" aria-hidden="true">' + c.svg + '</svg>', c.name); }).join("");
+  $("modes").innerHTML = choice("mode", "easy", S.mode === "easy", "", T.easy[0], T.easy[1]) + choice("mode", "hard", S.mode === "hard", "", T.hard[0], T.hard[1]);
+  $("scenes").innerHTML = choice("setting", "journey", S.setting === "journey", journeyTile(), "Journey", "") +
+    SCENE_IDS.map(function(id){ return choice("setting", id, S.setting === id, miniScene(id), SCENES[id].name, ""); }).join("");
+  ["chars", "modes", "scenes"].forEach(function(id){
+    $(id).addEventListener("change", function(e){
+      var t = e.target; if(!t || t.type !== "radio") return;
+      S[t.name] = t.value; store.set(t.name, t.value); bestLine();
+    });
+  });
+  bestLine();
+}
+function bestLine(){
+  var b = +store.get("best-" + S.mode, 0);
+  $("bestLine").textContent = b ? "Best on " + (S.mode === "easy" ? "Easy" : "Hard") + ": " + b + " delivered" : "";
+}
+
+/* ---------- scene ---------- */
+var svg, pkEl, pos = { x: 0, y: 0 }, moveToken = 0;
+function anchor(n){ return { x: n.x + 34, y: n.y + 46 }; }
+function base(n){ return { x: n.x, y: n.y + 40 }; }
+
+function sceneMarkup(R, sc, id){
+  var rng = mulberry(Math.floor(Math.random() * 1e9)), out = '';
+  out += '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + sc.sky[0] + '"/><stop offset="1" stop-color="' + sc.sky[1] + '"/></linearGradient>' +
+    '<radialGradient id="vig" cx="50%" cy="48%" r="75%"><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs>';
+  out += '<rect width="1000" height="560" fill="url(#sky)"/>' + sc.far();
+  out += '<rect y="' + GROUND + '" width="1000" height="' + (560 - GROUND) + '" fill="' + sc.ground + '"/><rect y="' + GROUND + '" width="1000" height="12" fill="#000" opacity=".06"/>';
+  /* decor: random spots, kept clear of buildings and roads */
+  var links = R.links.map(function(l){ return [base(R.byId[l.a]), base(R.byId[l.b])]; });
+  var pts = [], placed = [];
+  sc.decor.forEach(function(d){
+    var want = d[1], tries = 0, got = 0;
+    while(got < want && tries++ < want * 40){
+      var x = 30 + rng() * 940, y = GROUND + 24 + rng() * (560 - GROUND - 30);
+      var clear = R.nodes.every(function(n){ return !(Math.abs(n.x - x) < 78 && y > n.y - 56 && y < n.y + 80); }) &&
+        links.every(function(l){ return segDist(x, y, l[0].x, l[0].y, l[1].x, l[1].y) > 30; }) &&
+        placed.every(function(p){ return Math.hypot(p.x - x, p.y - y) > 26; });
+      if(clear){ placed.push({ x: x, y: y }); pts.push({ f: d[0], x: x, y: y, s: d[2] + rng() * (d[3] - d[2]) }); got++; }
+    }
+  });
+  pts.sort(function(a, b){ return a.y - b.y; });
+  out += pts.map(function(p){ return D[p.f](Math.round(p.x), Math.round(p.y), p.s.toFixed(2), sc); }).join("");
+  /* roads */
+  R.links.forEach(function(l){
+    var a = base(R.byId[l.a]), b = base(R.byId[l.b]), w = l.trunk ? 26 : 20;
+    out += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="#000" stroke-opacity=".2" stroke-width="' + (w + 5) + '" stroke-linecap="round"/>' +
+      '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="' + sc.road + '" stroke-width="' + w + '" stroke-linecap="round"/>' +
+      '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="' + sc.line + '" stroke-width="' + (l.trunk ? 3 : 2.4) + '" stroke-dasharray="' + (l.trunk ? "2 7" : "7 9") + '" stroke-linecap="round" opacity=".75"/>';
+  });
+  out += '<g id="trail"></g>';
+  /* buildings, back to front */
+  var vlans = {};
+  R.lans.forEach(function(l, i){ if(l.vlan) vlans[l.vlan] = VCOL[i % VCOL.length]; });
+  R.nodes.slice().sort(function(a, b){ return a.y - b.y; }).forEach(function(n){
+    var role = sc.names[n.kind], kindName = n.kind === "host" ? "PC" : n.kind === "switch" ? "Switch" : "Router";
+    out += '<g class="node" data-id="' + n.id + '" tabindex="0" role="button" aria-label="' + n.label + ', ' + kindName + '. Show its tables." transform="translate(' + n.x + ' ' + n.y + ')">' +
+      '<ellipse class="ring" cx="0" cy="40" rx="52" ry="15"/><ellipse cx="0" cy="40" rx="36" ry="7" fill="#000" opacity=".2"/>' +
+      '<g class="glyph" transform="translate(-42 -36) scale(.84)">' + GLYPH[id][n.kind] + '</g>' +
+      '<text class="lbl" y="64" text-anchor="middle">' + n.label + '</text><title>' + n.label + ' (' + kindName + ', the ' + role + ')</title>';
+    if(n.kind === "host" && n.vlan) out += '<g transform="translate(14 -32)"><rect width="34" height="19" rx="4" fill="' + vlans[n.vlan] + '"/><text class="vtag" x="17" y="14" text-anchor="middle">' + n.vlan + '</text></g>';
+    out += '</g>';
+  });
+  /* interface names, one near each end of every road */
+  R.links.forEach(function(l){
+    var a = base(R.byId[l.a]), b = base(R.byId[l.b]), len = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
+    var off = Math.min(78, len * 0.36);
+    [[a, l.an, 1], [b, l.bn, -1]].forEach(function(e){
+      var x = e[0].x + ux * off * e[2], y = e[0].y + uy * off * e[2];
+      out += '<text class="ifl" x="' + x.toFixed(1) + '" y="' + (y + 5.5).toFixed(1) + '" text-anchor="middle">' + e[1] + '</text>';
+    });
+  });
+  var d = R.dst;
+  out += '<g transform="translate(' + (d.x - 34) + ' ' + (d.y - 36) + ')" pointer-events="none"><path d="M0 0V38" stroke="#f4efe3" stroke-width="2.6"/><path class="flag" style="fill:var(--accent)" d="M1.5 1H25L18 9L25 17H1.5Z"/></g>';
+  out += '<g id="pkLayer"></g><g id="fx"></g><rect width="1000" height="560" fill="url(#vig)" pointer-events="none"/>';
+  return out;
+}
+function packetMarkup(ch){
+  return '<g class="pk" id="pk"><g class="who" id="pkWho"><ellipse cx="0" cy="1" rx="20" ry="5" fill="#000" opacity=".25"/>' +
+    '<g id="pkFlip"><g transform="translate(-32 -61) scale(.8)">' + ch.svg + '</g></g></g>' +
+    '<g class="pk-tag" transform="translate(0 -74)"><rect x="-34" y="-14" width="68" height="23" rx="5"/><text id="pkTtl" text-anchor="middle" y="3"></text></g></g>';
+}
+function renderScene(fresh){
+  var sc = SCENES[S.scene], R = S.round;
+  document.documentElement.style.setProperty("--accent", sc.accent);
+  svg.setAttribute("style", varStyle(sc));
+  svg.innerHTML = sceneMarkup(R, sc, S.scene);
+  var ch = CHARS.filter(function(c){ return c.id === S.char; })[0];
+  $("pkLayer").innerHTML = packetMarkup(ch);
+  pkEl = $("pk");
+  if(fresh){ svg.classList.remove("enter"); void svg.getBoundingClientRect(); svg.classList.add("enter"); }
+  if(REDUCED && svg.pauseAnimations) svg.pauseAnimations();
+  var a = anchor(R.src);
+  setPk(a.x, a.y);
+  setTtlTag();
+}
+function setPk(x, y){ pos.x = x; pos.y = y; pkEl.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ")"); }
+function setFlip(dir){ $("pkFlip").setAttribute("transform", dir < 0 ? "scale(-1 1)" : ""); }
+function setTtlTag(){ var t = $("pkTtl"); if(t) t.textContent = "TTL " + S.ttl; }
+function moveTo(x, y){
+  return new Promise(function(res){
+    var token = ++moveToken, fx = pos.x, fy = pos.y, dx = x - fx, dy = y - fy, dist = Math.hypot(dx, dy);
+    if(!dist || REDUCED){ setPk(x, y); res(); return; }
+    if(Math.abs(dx) > 6) setFlip(dx);
+    pkEl.classList.add("walking");
+    var dur = Math.min(1500, 380 + dist * 1.7), t0 = performance.now();
+    (function tick(now){
+      if(token !== moveToken){ res(); return; }
+      var k = Math.min(1, (now - t0) / dur), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      setPk(fx + dx * e, fy + dy * e);
+      if(k < 1) requestAnimationFrame(tick); else { pkEl.classList.remove("walking"); res(); }
+    })(t0);
+  });
+}
+function anim(cls){
+  var w = $("pkWho"); if(!w) return;
+  w.classList.remove("shake", "hop"); void w.getBoundingClientRect(); w.classList.add(cls);
+}
+function floatText(text, cls){
+  var fx = $("fx"); if(!fx) return;
+  var t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  t.setAttribute("class", "float " + cls); t.setAttribute("x", pos.x + 6); t.setAttribute("y", pos.y - 84); t.setAttribute("text-anchor", "middle");
+  t.textContent = text; fx.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 1400);
+}
+function drawTrail(a, b){
+  var t = $("trail"); if(!t) return;
+  var p = base(a), q = base(b);
+  t.insertAdjacentHTML("beforeend", '<line x1="' + p.x + '" y1="' + p.y + '" x2="' + q.x + '" y2="' + q.y + '" stroke-width="7" stroke-linecap="round" opacity=".55" style="stroke:var(--accent)"/>');
+}
+function setCurrent(id){
+  Array.prototype.forEach.call(svg.querySelectorAll(".node"), function(n){ n.classList.toggle("current", n.getAttribute("data-id") === id); });
+}
+function markInspected(){
+  Array.prototype.forEach.call(svg.querySelectorAll(".node"), function(n){ n.classList.toggle("inspected", n.getAttribute("data-id") === S.inspect); });
+}
+
+/* ---------- hud ---------- */
+function updateHud(hit){
+  var m = MODES[S.mode], f = Math.max(0, S.ttl) / m.max;
+  $("meterFill").style.width = Math.round(f * 100) + "%";
+  $("meter").className = "meter" + (f <= 0.25 ? " low" : f <= 0.5 ? " mid" : "");
+  $("ttlNum").textContent = Math.max(0, S.ttl);
+  $("delivered").textContent = S.delivered;
+  $("best").textContent = Math.max(S.delivered, +store.get("best-" + S.mode, 0));
+  if(hit){ var b = $("ttlBox"); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); }
+  setTtlTag();
+}
+function setTtl(v, hit){ S.ttl = v; if(S.st) S.st.hdr.ttl = v; updateHud(hit); }
+
+/* ---------- panels ---------- */
+function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function renderHdr(changed){
+  var h = S.st.hdr, R = S.round;
+  var cell = function(k, label, val, dim){
+    return '<div class="cell' + (changed && changed.indexOf(k) > -1 ? " flash" : "") + (dim ? " dim" : "") + '"><span class="lab">' + label + '</span><div class="v">' + esc(val) + '</div></div>';
+  };
+  $("hdr").innerHTML = '<div class="grp"><span class="lab">Ethernet frame</span><div class="row">' +
+    cell("srcMac", "Source MAC", h.srcMac) + cell("dstMac", "Destination MAC", h.dstMac || "not set yet", !h.dstMac) +
+    (R.tier === 3 ? cell("vlan", "802.1Q tag", h.vlan ? "VLAN " + h.vlan : "none", !h.vlan) : "") +
+    '</div></div><div class="grp"><span class="lab">IP packet</span><div class="row">' +
+    cell("srcIp", "Source IP", h.srcIp) + cell("dstIp", "Destination IP", h.dstIp) + cell("ttl", "TTL", h.ttl) + '</div></div>';
+}
+function arpHtml(n){
+  return '<h4>ARP cache</h4>' + (n.arp.length ? '<table><tr><th>IP address</th><th>MAC</th></tr>' +
+    n.arp.map(function(e){ return '<tr' + (e.fresh ? ' class="fresh"' : '') + '><td>' + e.ip + '</td><td>' + e.mac + '</td></tr>'; }).join("") + '</table>' : '<p class="none">Empty. Nothing has had to ask who owns an IP yet.</p>');
+}
+function ledgerHtml(n){
+  var sc = SCENES[S.scene], kindName = n.kind === "host" ? "PC" : n.kind === "switch" ? "Switch" : "Router";
+  var out = '<h3>' + n.label + '<small>' + kindName + ' (the ' + sc.names[n.kind] + ')</small></h3>';
+  if(n.kind === "host"){
+    out += '<dl><dt>IP address</dt><dd>' + n.ip + '/' + n.prefix + '</dd><dt>Subnet mask</dt><dd>' + n2ip(maskN(n.prefix)) + '</dd>' +
+      '<dt>Default gateway</dt><dd>' + (n.gw || "none") + '</dd><dt>MAC address</dt><dd>' + n.mac + '</dd>' + (n.vlan ? '<dt>VLAN</dt><dd>' + n.vlan + '</dd>' : '') + '</dl>' + arpHtml(n);
+  } else if(n.kind === "switch"){
+    out += '<h4>Ports</h4><table><tr><th>Port</th><th>Mode</th><th>Connected to</th></tr>' +
+      n.ifaces.map(function(f){ return '<tr><td>' + f.name + '</td><td>' + (f.trunk ? "trunk" : f.vlan ? "access, VLAN " + f.vlan : "access") + '</td><td>' + f.peer.node.label + '</td></tr>'; }).join("") + '</table>' +
+      '<h4>MAC address table</h4>' + (n.table.length ? '<table><tr><th>MAC</th><th>Port</th></tr>' +
+      n.table.map(function(e){ return '<tr' + (e.fresh ? ' class="fresh"' : '') + '><td>' + e.mac + '</td><td>' + e.port + '</td></tr>'; }).join("") + '</table>' : '<p class="none">Empty. The switch has not heard from anyone yet.</p>');
+  } else {
+    var ifs = n.subs || n.ifaces;
+    out += '<h4>Interfaces</h4><table><tr><th>Name</th><th>Address</th><th>MAC</th></tr>' +
+      ifs.map(function(f){ return '<tr><td>' + f.name + '</td><td>' + f.ip + '/' + f.prefix + '</td><td>' + f.mac + '</td></tr>'; }).join("") + '</table>' +
+      '<h4>Routing table</h4><table><tr><th></th><th>Network</th><th>Next hop / out</th></tr>' +
+      n.routes.map(function(r){ return '<tr><td>' + r.code + '</td><td>' + r.cidr + '</td><td>' + (r.via ? "via " + r.via : r.iface.name) + '</td></tr>'; }).join("") + '</table>' + arpHtml(n);
+  }
+  return out + '<p class="hint">Select any building on the map to read its tables.</p>';
+}
+function renderLedger(){
+  var n = S.round.byId[S.inspect];
+  $("ledger").innerHTML = n ? ledgerHtml(n) : "";
+  markInspected();
+}
+
+/* ---------- flow ---------- */
+function questionCount(){ return S.round.steps.filter(function(s){ return s.kind !== "arrive"; }).length; }
+function showStep(){
+  var step = S.round.steps[S.stepIdx];
+  setCurrent(step.at);
+  S.inspect = step.at;
+  if(step.kind === "arrive"){ renderLedger(); return arrive(); }
+  var q = step.ask(S.st);
+  S.q = q; S.answered = false;
+  renderLedger();
+  $("q").innerHTML = '<div class="q-top"><span>Step ' + (S.stepIdx + 1) + ' of ' + questionCount() + '</span><span>At ' + step.at + '</span></div>' +
+    '<h2 class="prompt">' + esc(q.prompt) + '</h2><div class="opts" role="group" aria-label="Choices">' +
+    q.options.map(function(o, i){
+      return '<button class="opt" type="button" data-i="' + i + '"><kbd>' + (i + 1) + '</kbd><span><span class="ot">' + esc(o.text) + '</span>' + (o.sub ? '<span class="os">' + esc(o.sub) + '</span>' : '') + '</span></button>';
+    }).join("") + '</div><div class="fb" id="fb" role="status" aria-live="polite" hidden></div><div class="actions"><button class="btn primary" id="cont" type="button" hidden>Keep going</button></div>';
+  var first = $("q").querySelector(".opt");
+  if(first && !S.round.fresh) first.focus({ preventScroll: true });
+  S.round.fresh = false;
+}
+function showFb(kind, html){
+  var f = $("fb"); f.className = "fb " + kind; f.innerHTML = html; f.hidden = false;
+}
+function answer(i){
+  if(S.answered || S.dead) return;
+  var o = S.q.options[i], btn = $("q").querySelectorAll(".opt")[i];
+  if(o.ok){
+    S.answered = true;
+    Array.prototype.forEach.call($("q").querySelectorAll(".opt"), function(b){ b.disabled = true; });
+    btn.classList.add("right");
+    var changed = S.q.apply(S.st);
+    renderLedger();   // the answer may have taught a device something (an ARP reply, a learned MAC)
+    if(changed.indexOf("ttl") > -1){ setTtl(S.st.hdr.ttl, true); floatText("-1", "neg"); }
+    renderHdr(changed);
+    anim("hop");
+    if(S.ttl <= 0){ showFb("bad", esc(S.q.good)); setTimeout(function(){ gameOver(T.deadExpired(S.round.steps[S.stepIdx].at)); }, 900); return; }
+    showFb("good", esc(S.q.good));
+    var c = $("cont"); c.hidden = false; c.focus({ preventScroll: true });
+  } else {
+    btn.disabled = true; btn.classList.add("wrong");
+    var pen = MODES[S.mode].penalty;
+    setTtl(S.ttl - pen, true); floatText("-" + pen, "neg");
+    renderHdr(["ttl"]);
+    anim("shake");
+    showFb("bad", '<span class="pen">-' + pen + ' TTL</span> ' + esc(o.why));
+    if(S.ttl <= 0){ Array.prototype.forEach.call($("q").querySelectorAll(".opt"), function(b){ b.disabled = true; }); setTimeout(function(){ gameOver(T.deadWrong); }, 900); return; }
+    var nx = $("q").querySelector(".opt:not(:disabled)"); if(nx) nx.focus({ preventScroll: true });
+  }
+}
+function next(){
+  var c = $("cont"); if(c) c.disabled = true;
+  var prev = S.round.steps[S.stepIdx];
+  S.stepIdx++;
+  var step = S.round.steps[S.stepIdx];
+  if(step.at !== prev.at){
+    drawTrail(S.round.byId[prev.at], S.round.byId[step.at]);
+    var a = anchor(S.round.byId[step.at]);
+    setCurrent(null);
+    moveTo(a.x, a.y).then(showStep);
+  } else showStep();
+}
+function arrive(){
+  var R = S.round, m = MODES[S.mode];
+  S.delivered++;
+  var gain = 0;
+  if(m.refill){ var before = S.ttl; S.ttl = Math.min(m.max, S.ttl + m.refill); gain = S.ttl - before; S.st.hdr.ttl = S.ttl; }
+  if(S.delivered > +store.get("best-" + S.mode, 0)) store.set("best-" + S.mode, S.delivered);
+  updateHud(false);
+  anim("hop");
+  if(gain) floatText(T.refill(gain), "pos");
+  renderHdr(gain ? ["ttl"] : []);
+  $("q").innerHTML = '<div class="q-top"><span>Delivered</span><span>' + S.delivered + ' so far</span></div><h2 class="prompt">' + esc(T.delivered(R.dst.label)) + '</h2>' +
+    '<div class="actions"><button class="btn primary" id="nextRound" type="button">Next delivery</button></div>';
+  $("nextRound").focus({ preventScroll: true });
+}
+function chooseScene(){
+  if(S.setting !== "journey"){ S.scene = S.setting; S.roundsHere = 0; return false; }
+  if(S.roundsHere >= 3 || !S.round){
+    var opts = SCENE_IDS.filter(function(id){ return id !== S.scene || !S.round; });
+    var was = S.scene; S.scene = pick(opts); S.roundsHere = 0;
+    return S.scene !== was;
+  }
+  return false;
+}
+function nextRound(){
+  S.round = generateRound(pickTier(S.delivered));
+  S.round.fresh = true;
+  var changed = chooseScene();
+  S.roundsHere++;
+  S.st = { hdr: { srcMac: S.round.src.mac, dstMac: null, srcIp: S.round.src.ip, dstIp: S.round.dst.ip, ttl: S.ttl, vlan: null } };
+  S.stepIdx = 0;
+  renderScene(changed || S.delivered === 0 && S.roundsHere === 1);
+  setFlip(S.round.src.x > 500 ? -1 : 1);
+  $("banner").innerHTML = T.deliverTo(S.round.dst.label, S.round.dst.ip);
+  renderHdr([]);
+  showStep();
+}
+function gameOver(reason){
+  if(S.dead) return;
+  S.dead = true;
+  $("overTitle").textContent = "Packet dropped";
+  $("overWhy").textContent = reason;
+  $("overScore").textContent = S.delivered + (S.delivered === 1 ? " delivery" : " deliveries");
+  $("overBest").textContent = "Best on " + (S.mode === "easy" ? "Easy" : "Hard") + ": " + Math.max(S.delivered, +store.get("best-" + S.mode, 0));
+  $("over").hidden = false;
+  $("again").focus();
+}
+function startRun(){
+  var m = MODES[S.mode];
+  S.ttl = m.max; S.delivered = 0; S.dead = false; S.round = null; S.scene = S.setting === "journey" ? S.scene : S.setting; S.roundsHere = 0;
+  $("over").hidden = true; $("menu").hidden = true; $("play").hidden = false; $("hud").hidden = false;
+  updateHud(false);
+  nextRound();
+}
+function showMenu(){
+  moveToken++; S.dead = true;
+  $("over").hidden = true; $("play").hidden = true; $("hud").hidden = true; $("menu").hidden = false;
+  document.documentElement.style.setProperty("--accent", "#e8b44c");
+  bestLine();
+  $("start").focus({ preventScroll: true });
+}
+
+/* ---------- wiring ---------- */
+svg = $("scene");
+$("q").addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest(".opt") : null;
+  if(b && !b.disabled) return answer(+b.getAttribute("data-i"));
+  if(e.target.id === "cont") next();
+  if(e.target.id === "nextRound") nextRound();
+});
+svg.addEventListener("click", function(e){
+  var n = e.target.closest ? e.target.closest(".node") : null;
+  if(n && S.round){ S.inspect = n.getAttribute("data-id"); renderLedger(); }
+});
+svg.addEventListener("keydown", function(e){
+  if(e.key !== "Enter" && e.key !== " ") return;
+  var n = e.target.closest ? e.target.closest(".node") : null;
+  if(n && S.round){ e.preventDefault(); S.inspect = n.getAttribute("data-id"); renderLedger(); }
+});
+document.addEventListener("keydown", function(e){
+  if(e.ctrlKey || e.metaKey || e.altKey || $("play").hidden || !$("over").hidden) return;
+  var k = +e.key;
+  if(k >= 1 && k <= 4 && !S.answered){
+    var b = $("q").querySelectorAll(".opt")[k - 1];
+    if(b && !b.disabled){ e.preventDefault(); answer(k - 1); }
+  }
+});
+$("start").addEventListener("click", startRun);
+$("menuBtn").addEventListener("click", showMenu);
+$("again").addEventListener("click", startRun);
+$("toMenu").addEventListener("click", showMenu);
+
+buildMenu();
+
+/* Embedded on mustafahasnain.com: report our height so the frame grows to fit and never
+   needs its own scrollbar. */
+if(window.parent !== window){
+  document.body.style.minHeight = "0";
+  document.body.style.paddingBottom = "18px";
+  /* The host sizes the frame to fit, so a scrollbar here is never needed. Leaving it on makes
+     the two-column layout narrower, which changes its height, which resizes the frame again. */
+  document.documentElement.style.overflow = "hidden";
+  var reportHeight = function(){ parent.postMessage({ type: "tool-height", height: document.body.offsetHeight }, location.origin); };
+  if(window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.body);
+  reportHeight();
+} else {
+  document.documentElement.classList.add("solo");
+}
+
+})();
+</script>
+</body>
+</html>

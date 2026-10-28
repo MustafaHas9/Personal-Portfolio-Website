@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subnet Trainer</title>
+<style>
+/* Colour themes ("skins") and font sets ("faces"). The picker in the top right sets
+   data-skin / data-face on <html>. The blocks match [data-skin=...] on any element, so the
+   little preview swatches in the picker can carry their own value and show that theme. */
+:root,[data-skin="neon"]{
+  --bg:#07091a; --panel:#0e1330; --panel2:#151b45; --line:#27306b;
+  --text:#e9edff; --dim:#7f8ac0;
+  --cyan:#29f0ff; --pink:#ff3dbd; --gold:#ffd23f; --good:#35ff9a; --bad:#ff4d6a;
+  --cyan-rgb:41,240,255; --pink-rgb:255,61,189; --gold-rgb:255,210,63; --good-rgb:53,255,154;
+  --glow-a:#2a1670; --glow-b:#0a4f6e;
+  --on-accent:#07091a; --field:#050719; --ok-bg:#06241a; --no-bg:#2a0a14;
+  --check-shadow:#0b7f6b; --next-shadow:#8b2a73;
+}
+[data-skin="ocean"]{
+  --bg:#04121f; --panel:#0a1f33; --panel2:#0f2c47; --line:#1e4a73;
+  --text:#e8f4ff; --dim:#7fa6c9;
+  --cyan:#5ec8ff; --pink:#7c9bff; --gold:#ffe08a; --good:#35ff9a; --bad:#ff4d6a;
+  --cyan-rgb:94,200,255; --pink-rgb:124,155,255; --gold-rgb:255,224,138; --good-rgb:53,255,154;
+  --glow-a:#0b3a66; --glow-b:#0a5a5f;
+  --on-accent:#04121f; --field:#031019; --ok-bg:#06241a; --no-bg:#2a0a14;
+  --check-shadow:#0b5a85; --next-shadow:#3a4fa8;
+}
+[data-skin="forest"]{
+  --bg:#040d07; --panel:#0a1a10; --panel2:#10261a; --line:#1f4a2c;
+  --text:#e6f7ea; --dim:#7fb08c;
+  --cyan:#4ade80; --pink:#bef264; --gold:#fde68a; --good:#35ff9a; --bad:#ff4d6a;
+  --cyan-rgb:74,222,128; --pink-rgb:190,242,100; --gold-rgb:253,230,138; --good-rgb:53,255,154;
+  --glow-a:#0f3d1d; --glow-b:#14532d;
+  --on-accent:#04120a; --field:#030a05; --ok-bg:#06241a; --no-bg:#2a0a14;
+  --check-shadow:#166534; --next-shadow:#4d7c0f;
+}
+[data-skin="sunset"]{
+  --bg:#140808; --panel:#230f0f; --panel2:#331616; --line:#5c2a2a;
+  --text:#fff0e8; --dim:#c89a8a;
+  --cyan:#ff9f43; --pink:#ff5e7e; --gold:#ffd166; --good:#35ff9a; --bad:#ff4d6a;
+  --cyan-rgb:255,159,67; --pink-rgb:255,94,126; --gold-rgb:255,209,102; --good-rgb:53,255,154;
+  --glow-a:#5b1a0a; --glow-b:#6b1d3a;
+  --on-accent:#1a0a05; --field:#0e0505; --ok-bg:#06241a; --no-bg:#2a0a14;
+  --check-shadow:#a35a14; --next-shadow:#9a2b4a;
+}
+[data-skin="paper"]{
+  --bg:#f6f4ee; --panel:#ffffff; --panel2:#fbfaf6; --line:#d6d0c2;
+  --text:#1c1b18; --dim:#6b665a;
+  --cyan:#0f766e; --pink:#be185d; --gold:#b45309; --good:#15803d; --bad:#b91c1c;
+  --cyan-rgb:15,118,110; --pink-rgb:190,24,93; --gold-rgb:180,83,9; --good-rgb:21,128,61;
+  --glow-a:#e7e1d2; --glow-b:#ece7da;
+  --on-accent:#ffffff; --field:#ffffff; --ok-bg:#e6f4ea; --no-bg:#fde8e8;
+  --check-shadow:#0a4f4a; --next-shadow:#7a2a15;
+}
+/* Strictly black and white: right and wrong can't be told apart by green and red here, so a
+   wrong box gets a dashed border and a grey fill instead (see the rule near the end of the CSS). */
+[data-skin="noir"]{
+  --bg:#000000; --panel:#0a0a0a; --panel2:#141414; --line:#3d3d3d;
+  --text:#ffffff; --dim:#9c9c9c;
+  --cyan:#ffffff; --pink:#bdbdbd; --gold:#e6e6e6; --good:#ffffff; --bad:#a6a6a6;
+  --cyan-rgb:255,255,255; --pink-rgb:189,189,189; --gold-rgb:230,230,230; --good-rgb:255,255,255;
+  --glow-a:#1c1c1c; --glow-b:#0e0e0e;
+  --on-accent:#000000; --field:#000000; --ok-bg:#242424; --no-bg:#000000;
+  --check-shadow:#6b6b6b; --next-shadow:#4a4a4a;
+}
+:root,[data-face="arcade"]{
+  --mono:"Cascadia Code","Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  --display:Impact,"Arial Black","Segoe UI Black",system-ui,sans-serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+[data-face="clean"]{
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  --display:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+[data-face="serif"]{
+  --mono:"Courier New",Courier,monospace;
+  --display:Georgia,"Times New Roman",serif;
+  --sans:Georgia,"Times New Roman",serif;
+}
+[data-face="mono"]{
+  --mono:"Cascadia Code","Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  --display:"Cascadia Code","Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  --sans:"Cascadia Code","Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh;color:var(--text);font-family:var(--sans);line-height:1.4;padding:18px 14px 60px;
+  background:
+    radial-gradient(900px 500px at 15% -10%, var(--glow-a) 0%, transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, var(--glow-b) 0%, transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+}
+.wrap{max-width:760px;margin:0 auto}
+
+/* title */
+.title{font-family:var(--display);font-size:2.3rem;letter-spacing:3px;text-transform:uppercase;margin:0;
+  background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 12px rgba(var(--cyan-rgb),.35))}
+.tag{color:var(--dim);margin:0 0 14px;font-size:.9rem}
+
+/* HUD */
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.hud div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center}
+.hud small{display:block;font-size:.62rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim)}
+.hud b{font-family:var(--mono);font-size:1.25rem}
+#streak.hot{color:var(--gold);text-shadow:0 0 10px var(--gold)}
+.xp{height:8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.xp i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink));transition:width .5s}
+
+/* difficulty chips */
+.chips{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.chips span{color:var(--dim);font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;margin-right:4px}
+.chip{background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+.chip.on{color:var(--on-accent);background:var(--cyan);border-color:var(--cyan);font-weight:700}
+
+/* challenge */
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 0 30px rgba(var(--cyan-rgb),.06)}
+.given-label{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--pink)}
+.given{font-family:var(--mono);font-size:clamp(1.5rem,6vw,2.4rem);font-weight:700;color:var(--cyan);text-shadow:0 0 14px rgba(var(--cyan-rgb),.5);margin:2px 0;word-break:break-all}
+.given em{font-style:normal;color:var(--gold);text-shadow:0 0 14px rgba(var(--gold-rgb),.5)}
+.task{color:var(--dim);font-size:.88rem;margin-bottom:14px}
+.pop-in{animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+.fields{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.fields{grid-template-columns:1fr 1fr}}
+.f label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin-bottom:4px}
+.f input{width:100%;background:var(--field);color:var(--text);border:2px solid var(--line);border-radius:9px;padding:11px 12px;font-family:var(--mono);font-size:1.05rem;outline:none;transition:border-color .15s, box-shadow .15s}
+.f input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(var(--cyan-rgb),.18)}
+.f.ok input{border-color:var(--good);background:var(--ok-bg);color:var(--good)}
+.f.no input{border-color:var(--bad);background:var(--no-bg);color:var(--bad)}
+.f.ok{animation:pulse .5s}
+.f.no{animation:shake .4s}
+.fix{margin-top:5px;font-family:var(--mono);font-size:.88rem;color:var(--good)}
+.fix s{color:var(--bad);margin-right:6px}
+@keyframes pulse{40%{transform:scale(1.04)}}
+@keyframes shake{20%{transform:translateX(-7px)}60%{transform:translateX(7px)}100%{transform:none}}
+
+.check{display:block;width:100%;margin-top:16px;padding:18px;border:0;border-radius:12px;cursor:pointer;
+  font-family:var(--display);font-size:1.7rem;letter-spacing:4px;text-transform:uppercase;color:var(--on-accent);
+  background:linear-gradient(90deg,var(--cyan),var(--good));box-shadow:0 6px 0 var(--check-shadow), 0 10px 26px rgba(var(--good-rgb),.25);transition:transform .08s, box-shadow .08s}
+.check:active{transform:translateY(5px);box-shadow:0 1px 0 var(--check-shadow)}
+.check.next{background:linear-gradient(90deg,var(--gold),var(--pink));box-shadow:0 6px 0 var(--next-shadow), 0 10px 26px rgba(var(--pink-rgb),.25)}
+.sub{display:flex;gap:8px;margin-top:10px}
+.sub button{flex:1;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;cursor:pointer}
+.sub button:hover{color:var(--text);border-color:var(--dim)}
+
+.result{margin-top:14px;font-family:var(--mono);font-weight:700;font-size:1.05rem}
+.result.good{color:var(--good)} .result.bad{color:var(--bad)}
+.why{margin-top:10px;padding:10px 12px;border-left:4px solid var(--gold);background:var(--panel);border-radius:0 8px 8px 0;font-size:.88rem;color:var(--text)}
+.why code{font-family:var(--mono);color:var(--gold)}
+.hidden{display:none!important}
+
+details{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+summary{cursor:pointer;color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.8rem;margin-top:10px}
+td,th{border:1px solid var(--line);padding:4px 6px;text-align:center}
+th{color:var(--dim)}
+
+/* title row + themes picker (top right) */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.themes{position:relative;flex-shrink:0}
+.themes-btn{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:8px;
+  padding:6px 12px;font:inherit;font-size:.82rem;cursor:pointer;transition:color .15s, border-color .15s, scale .15s}
+.themes-btn:hover,.themes-btn[aria-expanded="true"]{color:var(--cyan);border-color:var(--cyan)}
+.themes-btn svg{transition:transform .2s}
+.themes-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.themes-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:10;width:min(22rem,calc(100vw - 28px));
+  background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;
+  box-shadow:0 12px 30px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:14px}
+.themes-panel[hidden]{display:none}
+.group-label{margin:0 0 6px;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{display:inline-flex;align-items:center;gap:7px;background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:20px;
+  padding:5px 12px 5px 6px;font:inherit;font-size:.82rem;cursor:pointer;transition:color .15s, border-color .15s, scale .15s}
+.opt:hover{color:var(--text)}
+.opt[aria-pressed="true"]{color:var(--on-accent);background:var(--cyan);border-color:var(--cyan);font-weight:700}
+.sw{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.sw i{width:12px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.fs{font-family:var(--sans);font-size:1rem;width:22px;text-align:center;color:var(--text)}
+.opt[aria-pressed="true"] .fs{color:var(--on-accent)}
+.themes-btn:active,.opt:active{scale:.94}
+@media (prefers-reduced-motion: reduce){.themes-btn:active,.opt:active{scale:1}}
+[data-skin="paper"] .given,[data-skin="paper"] .given em,[data-skin="paper"] .float{text-shadow:none}
+[data-skin="noir"] .f.no input{border-style:dashed}
+/* Text glow off: every glowing number and heading goes flat, for anyone the glow strains. */
+[data-glow="off"] *{text-shadow:none !important}
+[data-glow="off"] .title{filter:none}
+.opt-plain{padding-left:12px}
+
+/* confetti */
+.bit{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:9;animation:fly 0.9s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+.float{position:fixed;font-family:var(--display);font-size:1.6rem;color:var(--gold);text-shadow:0 0 12px var(--gold);pointer-events:none;z-index:9;animation:rise 1s ease-out forwards}
+@keyframes rise{to{transform:translateY(-70px);opacity:0}}
+</style>
+<script>
+/* Apply the saved theme and font before the page paints, so a reload never flashes the default. */
+(function(){
+  var skins = ["neon","ocean","forest","sunset","paper","noir"], faces = ["arcade","clean","serif","mono"], glows = ["on","off"];
+  function get(k, list){ try{ var v = localStorage.getItem("subnetTrainer-" + k); if(list.indexOf(v) > -1) return v; }catch(e){} return list[0]; }
+  document.documentElement.setAttribute("data-skin", get("skin", skins));
+  document.documentElement.setAttribute("data-face", get("face", faces));
+  document.documentElement.setAttribute("data-glow", get("glow", glows));
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1 class="title">Subnet Trainer</h1>
+      <p class="tag">Endless random IPs and prefixes. Every round is different.</p>
+    </div>
+    <div class="themes">
+      <button type="button" id="themes-toggle" class="themes-btn" aria-expanded="false" aria-controls="themes-panel">
+        Themes
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+      </button>
+      <div id="themes-panel" class="themes-panel" hidden>
+        <div role="group" aria-labelledby="themes-color-label">
+          <p id="themes-color-label" class="group-label">Color</p>
+          <div class="opts">
+            <button type="button" class="opt" data-skin-choice="neon" aria-pressed="false"><span class="sw" data-skin="neon" aria-hidden="true"><i></i></span>Neon</button>
+            <button type="button" class="opt" data-skin-choice="ocean" aria-pressed="false"><span class="sw" data-skin="ocean" aria-hidden="true"><i></i></span>Ocean</button>
+            <button type="button" class="opt" data-skin-choice="forest" aria-pressed="false"><span class="sw" data-skin="forest" aria-hidden="true"><i></i></span>Forest</button>
+            <button type="button" class="opt" data-skin-choice="sunset" aria-pressed="false"><span class="sw" data-skin="sunset" aria-hidden="true"><i></i></span>Sunset</button>
+            <button type="button" class="opt" data-skin-choice="paper" aria-pressed="false"><span class="sw" data-skin="paper" aria-hidden="true"><i></i></span>Paper</button>
+            <button type="button" class="opt" data-skin-choice="noir" aria-pressed="false"><span class="sw" data-skin="noir" aria-hidden="true"><i></i></span>Noir</button>
+          </div>
+        </div>
+        <div role="group" aria-labelledby="themes-font-label">
+          <p id="themes-font-label" class="group-label">Font</p>
+          <div class="opts">
+            <button type="button" class="opt" data-face-choice="arcade" aria-pressed="false"><span class="fs" data-face="arcade" aria-hidden="true">Aa</span>Arcade</button>
+            <button type="button" class="opt" data-face-choice="clean" aria-pressed="false"><span class="fs" data-face="clean" aria-hidden="true">Aa</span>Clean</button>
+            <button type="button" class="opt" data-face-choice="serif" aria-pressed="false"><span class="fs" data-face="serif" aria-hidden="true">Aa</span>Serif</button>
+            <button type="button" class="opt" data-face-choice="mono" aria-pressed="false"><span class="fs" data-face="mono" aria-hidden="true">Aa</span>Mono</button>
+          </div>
+        </div>
+        <div role="group" aria-labelledby="themes-glow-label">
+          <p id="themes-glow-label" class="group-label">Text glow</p>
+          <div class="opts">
+            <button type="button" class="opt opt-plain" data-glow-choice="on" aria-pressed="false">On</button>
+            <button type="button" class="opt opt-plain" data-glow-choice="off" aria-pressed="false">Off</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div><small>Score</small><b id="score">0</b></div>
+    <div><small>Streak</small><b id="streak">0</b></div>
+    <div><small>Level</small><b id="level">1</b></div>
+    <div><small>Accuracy</small><b id="acc">-</b></div>
+  </div>
+  <div class="xp"><i id="xp"></i></div>
+
+  <div class="chips" id="chips">
+    <span>Prefix range</span>
+    <button class="chip on" data-r="8,30">/8 &ndash; /30</button>
+    <button class="chip" data-r="16,30">/16 &ndash; /30</button>
+    <button class="chip" data-r="24,30">/24 &ndash; /30</button>
+    <button class="chip" data-r="25,30">/25 &ndash; /30</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="given-label" id="glabel"></div>
+    <div class="given" id="given"></div>
+    <div class="task" id="task"></div>
+    <div class="fields" id="fields"></div>
+    <button class="check" id="check">Check</button>
+    <div class="result hidden" id="result"></div>
+    <div class="why hidden" id="why"></div>
+    <div class="sub"><button id="skip">Skip &amp; reveal</button><button id="reset">Reset stats</button></div>
+  </div>
+
+  <details>
+    <summary>Cheat sheet</summary>
+    <table id="cheat"></table>
+  </details>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------- randomness (crypto if available) ---------- */
+function rand32(){
+  try{ var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; }catch(e){ return Math.floor(Math.random()*4294967296); }
+}
+function rnd(a,b){ return a + Math.floor(rand32() / 4294967296 * (b - a + 1)); }
+function pick(a){ return a[rnd(0,a.length-1)]; }
+
+/* ---------- subnet math ---------- */
+var maskOf = function(n){ return n === 0 ? 0 : (0xFFFFFFFF << (32 - n)) >>> 0; };
+var toIp = function(x){ x = x>>>0; return [x>>>24,(x>>>16)&255,(x>>>8)&255,x&255].join("."); };
+function parseIp(s){
+  var p = String(s).trim().split(".");
+  if(p.length !== 4) return null;
+  var v = 0;
+  for(var i=0;i<4;i++){ if(!/^\d{1,3}$/.test(p[i]) || +p[i] > 255) return null; v = v*256 + (+p[i]); }
+  return v >>> 0;
+}
+function parseCidr(s){ var m = /^\/?\s*(\d{1,2})$/.exec(String(s).trim()); return m ? +m[1] : null; }
+
+function randomIp(){
+  // ~40% private ranges, otherwise any unicast first octet (no 0, 127, 224+)
+  var t = rnd(0,9);
+  if(t < 2)  return ((10<<24) | rand32() & 0xFFFFFF) >>> 0;
+  if(t < 3)  return ((172<<24) | ((16 + rnd(0,15))<<16) | (rand32() & 0xFFFF)) >>> 0;
+  if(t < 4)  return ((192<<24) | (168<<16) | (rand32() & 0xFFFF)) >>> 0;
+  var a; do { a = rnd(1,223); } while(a === 127 || a === 10);
+  return ((a<<24) | (rand32() & 0xFFFFFF)) >>> 0;
+}
+
+/* ---------- challenge generation ---------- */
+// Given: one address (host / network / broadcast / first / last) plus prefix as /n or dotted mask.
+var GIVEN = {
+  host:      { label:"Host IP",           ask:"Somewhere inside the subnet." },
+  network:   { label:"Network address",   ask:"This is the first address of the subnet." },
+  broadcast: { label:"Broadcast address", ask:"This is the last address of the subnet." },
+  first:     { label:"First usable host", ask:"Network address + 1." },
+  last:      { label:"Last usable host",  ask:"Broadcast address - 1." }
+};
+var range = [8,30];
+
+function build(){
+  var n = rnd(range[0], range[1]);
+  var mask = maskOf(n), wild = (~mask) >>> 0;
+  var gtype = pick(["host","host","network","broadcast","first","last"]);
+  var asMask = rnd(0,1) === 1;
+  var ip, net, bc;
+  do { ip = randomIp(); net = (ip & mask) >>> 0; bc = (net | wild) >>> 0; } while(ip === net || ip === bc);
+
+  var gaddr = { host:ip, network:net, broadcast:bc, first:net+1, last:bc-1 }[gtype];
+  var givenHtml = toIp(gaddr) + (asMask ? " <em>" + toIp(mask) + "</em>" : " <em>/" + n + "</em>");
+
+  var F = [];
+  function add(key,label,ans,check,ph){ F.push({key:key,label:label,ans:ans,check:check,ph:ph||""}); }
+  var ipChk = function(v){ return function(x){ return parseIp(x) === (v>>>0); }; };
+
+  if(asMask) add("cidr","CIDR prefix","/"+n,function(x){ return parseCidr(x) === n; },"/24");
+  else       add("mask","Subnet mask",toIp(mask),ipChk(mask),"255.255.255.0");
+
+  if(gtype !== "network")   add("net","Network address",toIp(net),ipChk(net));
+  if(gtype !== "first")     add("first","First usable host",toIp(net+1),ipChk(net+1));
+  if(gtype !== "last")      add("last","Last usable host",toIp(bc-1),ipChk(bc-1));
+  if(gtype !== "broadcast") add("bc","Broadcast address",toIp(bc),ipChk(bc));
+  var hosts = Math.pow(2,32-n) - 2;
+  add("hosts","Usable hosts",String(hosts),function(x){ var s=String(x).trim().replace(/[,\s]/g,""); return /^\d+$/.test(s) && +s === hosts; });
+
+  // extra twists
+  if(gtype === "network" || gtype === "broadcast" || rnd(0,3) === 0){
+    add("valid","Any valid host IP", toIp(net+1) + " to " + toIp(bc-1) + " (any one)",
+      function(x){ var v = parseIp(x); return v !== null && v > net && v < bc; });
+  }
+  if(rnd(0,2) === 0) add("wild","Wildcard mask",toIp(wild),ipChk(wild),"0.0.0.255");
+
+  // shuffle so field order doesn't become a memorized pattern
+  for(var i=F.length-1;i>0;i--){ var j = rnd(0,i); var t = F[i]; F[i] = F[j]; F[j] = t; }
+
+  return { n:n, gtype:gtype, label:GIVEN[gtype].label, ask:GIVEN[gtype].ask, given:givenHtml, fields:F, why:why(n, gaddr) };
+}
+
+function why(n, addr){
+  var mask = maskOf(n);
+  var t = "<code>/" + n + "</code> = <code>" + toIp(mask) + "</code>, " + (32-n) + " host bits, <code>" + (Math.pow(2,32-n)-2) + "</code> usable hosts. ";
+  if(n % 8 === 0) return t + "Octet boundary: keep the first " + (n/8) + " octet(s) of the network and zero the rest; broadcast fills the rest with 255.";
+  var idx = Math.floor(n/8), mo = (mask >>> (24 - idx*8)) & 255, block = 256 - mo;
+  var o = (addr >>> (24 - idx*8)) & 255, start = o - (o % block);
+  return t + "Interesting octet #" + (idx+1) + ", block size 256 - " + mo + " = <code>" + block + "</code>. The given octet is " + o + ", so it sits in the <code>" + start + "&ndash;" + (start+block-1) + "</code> block: network ends at " + start + ", broadcast at " + (start+block-1) + ".";
+}
+
+/* ---------- game state ---------- */
+var C = null, answered = false, t0 = 0;
+var P = { score:0, streak:0, best:0, right:0, total:0 };
+try{ var saved = JSON.parse(localStorage.getItem("subnetTrainer")); if(saved) P = Object.assign(P, saved); }catch(e){}
+function save(){ try{ localStorage.setItem("subnetTrainer", JSON.stringify(P)); }catch(e){} }
+
+function mult(){ return Math.min(3, 1 + 0.25 * P.streak); }
+function hud(){
+  $("score").textContent = P.score;
+  $("streak").textContent = P.streak;
+  $("streak").classList.toggle("hot", P.streak >= 3);
+  $("level").textContent = Math.floor(P.score / 1500) + 1;
+  $("xp").style.width = ((P.score % 1500) / 1500 * 100) + "%";
+  $("acc").textContent = P.total ? Math.round(P.right / P.total * 100) + "%" : "-";
+}
+
+function newRound(){
+  C = build(); answered = false;
+  $("glabel").textContent = "Given: " + C.label;
+  $("given").innerHTML = C.given;
+  $("task").textContent = C.ask + " Solve every box.";
+  var box = $("fields"); box.innerHTML = "";
+  C.fields.forEach(function(f, i){
+    var d = document.createElement("div");
+    d.className = "f"; d.id = "f_" + f.key;
+    d.innerHTML = "<label>" + f.label + "</label><input autocomplete='off' autocapitalize='off' spellcheck='false' placeholder='" + f.ph + "'><div class='fix hidden'></div>";
+    box.appendChild(d);
+    d.querySelector("input").addEventListener("keydown", function(e){
+      if(e.key !== "Enter") return;
+      e.preventDefault(); e.stopPropagation();
+      var ins = box.querySelectorAll("input");
+      if(i < ins.length - 1) ins[i+1].focus(); else check();
+    });
+  });
+  var g = $("given"); g.classList.remove("pop-in"); void g.offsetWidth; g.classList.add("pop-in");
+  $("result").classList.add("hidden"); $("why").classList.add("hidden");
+  var b = $("check"); b.textContent = "Check"; b.classList.remove("next");
+  box.querySelector("input").focus();
+  t0 = Date.now();
+}
+
+function check(skip){
+  if(answered) return;
+  answered = true;
+  var secs = (Date.now() - t0) / 1000, right = 0;
+  C.fields.forEach(function(f){
+    var d = $("f_" + f.key), inp = d.querySelector("input"), fix = d.querySelector(".fix");
+    var ok = !skip && f.check(inp.value);
+    if(ok) right++;
+    d.classList.add(ok ? "ok" : "no"); inp.readOnly = true;
+    if(!ok){
+      var shown = inp.value.trim();
+      fix.innerHTML = (shown ? "<s>" + shown.replace(/</g,"&lt;") + "</s>" : "") + f.ans;
+      fix.classList.remove("hidden");
+    }
+  });
+  var perfect = right === C.fields.length, res = $("result");
+  P.total++;
+  res.classList.remove("hidden");
+  if(perfect){
+    var bonus = Math.round(Math.max(0, 60 * (1 - secs / 90)));
+    var pts = Math.round((100 + bonus) * mult());
+    P.score += pts; P.streak++; P.right++;
+    if(P.streak > P.best) P.best = P.streak;
+    res.className = "result good";
+    res.textContent = "PERFECT  +" + pts + "  (" + secs.toFixed(1) + "s" + (P.streak > 1 ? ", x" + Math.min(3, 1 + 0.25*(P.streak-1)).toFixed(2) : "") + ")";
+    burst(pts);
+  } else {
+    var part = right * 10;
+    P.score += part; P.streak = 0;
+    res.className = "result bad";
+    res.textContent = skip ? "Revealed. Study the answers below." : right + "/" + C.fields.length + " correct. Fix the wrong boxes.";
+  }
+  $("why").innerHTML = C.why; $("why").classList.remove("hidden");
+  var b = $("check"); b.textContent = "Next"; b.classList.add("next"); b.focus();
+  save(); hud();
+}
+
+function burst(pts){
+  var r = $("check").getBoundingClientRect(), x = r.left + r.width/2, y = r.top;
+  var cs = getComputedStyle(document.documentElement);
+  var colors = ["--cyan","--pink","--gold","--good"].map(function(n){ return cs.getPropertyValue(n).trim(); });
+  for(var i=0;i<22;i++){
+    var s = document.createElement("div"); s.className = "bit";
+    s.style.left = x + "px"; s.style.top = y + "px";
+    s.style.background = colors[i % 4];
+    s.style.setProperty("--dx", (Math.random()*360 - 180) + "px");
+    s.style.setProperty("--dy", (Math.random()*-220 - 20) + "px");
+    document.body.appendChild(s); setTimeout(function(el){ el.remove(); }.bind(null, s), 950);
+  }
+  var f = document.createElement("div"); f.className = "float"; f.textContent = "+" + pts;
+  f.style.left = (x - 30) + "px"; f.style.top = (y - 20) + "px";
+  document.body.appendChild(f); setTimeout(function(){ f.remove(); }, 1000);
+}
+
+/* ---------- wiring ---------- */
+$("check").addEventListener("click", function(){ answered ? newRound() : check(false); });
+$("skip").addEventListener("click", function(){ if(!answered) check(true); else newRound(); });
+$("reset").addEventListener("click", function(){ P = {score:0,streak:0,best:0,right:0,total:0}; save(); hud(); });
+document.addEventListener("keydown", function(e){ if(e.key === "Enter" && answered){ e.preventDefault(); newRound(); } });
+$("chips").addEventListener("click", function(e){
+  var b = e.target.closest(".chip"); if(!b) return;
+  var r = b.getAttribute("data-r").split(","); range = [+r[0], +r[1]];
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(c){ c.classList.toggle("on", c === b); });
+  newRound();
+});
+
+$("cheat").innerHTML =
+  "<tr><th>Mask octet</th><th>128</th><th>192</th><th>224</th><th>240</th><th>248</th><th>252</th><th>254</th><th>255</th></tr>" +
+  "<tr><th>Bits</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>" +
+  "<tr><th>Block</th><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td><td>2</td><td>1</td></tr>" +
+  "<tr><th>Hosts</th><td colspan='8' style='text-align:left'>/24 254 &middot; /25 126 &middot; /26 62 &middot; /27 30 &middot; /28 14 &middot; /29 6 &middot; /30 2</td></tr>";
+
+/* ---------- themes picker ---------- */
+var root = document.documentElement, tBtn = $("themes-toggle"), tPanel = $("themes-panel");
+function syncPicker(){
+  Array.prototype.forEach.call(tPanel.querySelectorAll("[data-skin-choice]"), function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-skin-choice") === root.getAttribute("data-skin"))); });
+  Array.prototype.forEach.call(tPanel.querySelectorAll("[data-face-choice]"), function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-face-choice") === root.getAttribute("data-face"))); });
+  Array.prototype.forEach.call(tPanel.querySelectorAll("[data-glow-choice]"), function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-glow-choice") === root.getAttribute("data-glow"))); });
+}
+function closePicker(){ tPanel.hidden = true; tBtn.setAttribute("aria-expanded", "false"); }
+tBtn.addEventListener("click", function(){ var open = !tPanel.hidden; tPanel.hidden = open; tBtn.setAttribute("aria-expanded", String(!open)); });
+tPanel.addEventListener("click", function(e){
+  var b = e.target.closest("[data-skin-choice],[data-face-choice],[data-glow-choice]"); if(!b) return;
+  var key = b.hasAttribute("data-skin-choice") ? "skin" : b.hasAttribute("data-face-choice") ? "face" : "glow";
+  var val = b.getAttribute("data-" + key + "-choice");
+  root.setAttribute("data-" + key, val);
+  try{ localStorage.setItem("subnetTrainer-" + key, val); }catch(err){}
+  syncPicker();
+});
+document.addEventListener("click", function(e){ if(!tPanel.hidden && !tPanel.contains(e.target) && !tBtn.contains(e.target)) closePicker(); });
+document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !tPanel.hidden){ closePicker(); tBtn.focus(); } });
+syncPicker();
+
+/* ---------- embedded on mustafahasnain.com: tell the host page how tall we are, so the frame
+   can grow to fit and never needs its own scrollbar ---------- */
+if(window.parent !== window){
+  document.body.style.minHeight = "0";
+  document.body.style.paddingBottom = "18px";
+  var reportHeight = function(){ parent.postMessage({ type:"tool-height", height: document.body.offsetHeight }, location.origin); };
+  if(window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.body);
+  reportHeight();
+}
+
+hud();
+newRound();
+})();
+</script>
+</body>
+</html>

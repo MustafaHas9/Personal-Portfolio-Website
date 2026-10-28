@@ -1,0 +1,131 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import subnetTrainerPreview from '../../assets/previews/subnet-trainer.png';
+import packetPilotPreview from '../../assets/previews/packet-pilot.png';
+
+// Each tool is a self-contained HTML file in public/learn/<slug>/app.html, shown inside the
+// site layout by src/pages/learn/<slug>.astro. Adding one means adding an entry here too.
+// `preview` is a screenshot of the tool, kept in src/assets/previews/ so Astro optimises it.
+const tools = [
+  {
+    href: '/learn/subnet-trainer',
+    name: 'Subnet Trainer',
+    description:
+      'Endless random IP addresses and prefixes to practice subnetting. It tracks score, streak, level, and accuracy, and has a cheat sheet built in.',
+    preview: subnetTrainerPreview,
+    previewAlt: 'The Subnet Trainer showing a random IP address and prefix, with boxes to fill in below.',
+  },
+  {
+    href: '/learn/packet-pilot',
+    name: 'Packet Pilot',
+    description:
+      'Guide a packet across a randomly built network. At every stop you choose the MAC address, the route, and the headers, and every wrong turn costs TTL.',
+    preview: packetPilotPreview,
+    previewAlt: 'Packet Pilot on a farm map: a fox courier beside a house, two barns for switches, and a windmill for the router.',
+  },
+];
+---
+
+<Layout
+  title="Learn | Mustafa Hasnain"
+  description="Interactive tools for learning networking, starting with a subnetting trainer."
+>
+  <section class="page">
+    <h1>Learn</h1>
+    <p class="intro">
+      I'm a big believer in interactive learning. Here are some of the tools I use.
+    </p>
+
+    <ul class="tools">
+      {tools.map((tool) => (
+        <li>
+          <a class="tool glow-btn" href={tool.href}>
+            <Image class="preview" src={tool.preview} alt={tool.previewAlt} width={640} />
+            <h2>{tool.name}</h2>
+            <p>{tool.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>
+
+<style>
+  /* The shared page title leaves a full xl gap under it, which is too much when a single
+     line of intro follows. Tighter here, so the title and the intro read as one block. */
+  .page > h1 {
+    margin-bottom: var(--space-sm);
+  }
+
+  .intro {
+    max-width: 38rem;
+    margin: 0 auto var(--space-xl);
+    text-align: center;
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* Two columns that fill top to bottom as tools are added; one column on phones. minmax(0, ...)
+     stops a long word from stretching a column past its share. */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-lg);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  @media (max-width: 640px) {
+    .tools {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Same card shape as the project cards. The whole card is the link. */
+  .tool {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    height: 100%;
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text);
+  }
+
+  .tool:hover,
+  .tool:focus-visible {
+    color: var(--color-text);
+    border-color: var(--color-accent);
+  }
+
+  /* Cards are big, so the press-in is gentler than the buttons' 0.94. */
+  .tool:active {
+    scale: 0.98;
+  }
+
+  /* Cropped to a fixed shape so every card's preview lines up whatever the screenshot's size. */
+  .tool :global(.preview) {
+    display: block;
+    width: 100%;
+    /* auto so the aspect-ratio below sets the height, not the height attribute Astro adds. */
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+  }
+
+  .tool h2 {
+    font-size: 1.4rem;
+    color: var(--color-accent);
+  }
+
+  .tool p {
+    flex: 1;
+    line-height: 1.65;
+  }
+</style>

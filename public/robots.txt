@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /learn/subnet-trainer/app.html
+Disallow: /learn/packet-pilot/app.html
 
 Sitemap: https://mustafahasnain.com/sitemap-index.xml

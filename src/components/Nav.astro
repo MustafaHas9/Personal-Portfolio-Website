@@ -26,7 +26,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         <li><a href={link.href} aria-current={currentPath === link.href ? 'page' : undefined}>{link.label}</a></li>
       ))}
       <li>
-        <span class="soon gold-flow" title="Interactive Cisco CLI simulator — coming soon">Coming Soon</span>
+        <a class="learn-link gold-flow" href="/learn" aria-current={currentPath.startsWith('/learn') ? 'page' : undefined}>Learn</a>
       </li>
     </ul>
   </nav>
@@ -138,18 +138,29 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     font-weight: 600;
   }
 
-  /* "Coming Soon": the flowing gold look comes from .gold-flow in global.css (shared
-     with the gold Button); only the badge's own shape and type are set here. */
-  .soon {
+  /* The flowing gold look comes from .gold-flow in global.css (shared with the gold
+     Button); only the badge's own shape and type are set here. The selector includes
+     `nav a` so it beats the generic nav link colour, size, hover, and weight above. */
+  nav a.learn-link {
     display: inline-flex;
     align-items: center;
     padding: 0.55rem 1.2rem;
     border-radius: 12px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
+    color: var(--gold-ink);
+    text-shadow: none;
+    transition: box-shadow 0.3s ease, scale 0.15s ease;
+  }
+
+  nav a.learn-link:hover,
+  nav a.learn-link:focus-visible {
+    color: var(--gold-ink);
+    text-shadow: none;
+    box-shadow: 0 0 22px 2px var(--glow-hover);
   }
 
   .nav-actions {
@@ -265,9 +276,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
       font-size: 1rem;
     }
 
-    .soon {
+    nav a.learn-link {
       padding: 0.5rem 1rem;
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       letter-spacing: 0.06em;
     }
   }
