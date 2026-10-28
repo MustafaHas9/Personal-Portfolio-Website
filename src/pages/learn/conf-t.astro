@@ -1,0 +1,85 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Conf T | Mustafa Hasnain"
+  description="A pixel-art story game where you play by typing real Cisco IOS commands."
+>
+  <section class="page">
+    <a class="back" href="/learn">&larr; Back to Learn</a>
+    <!-- The game draws its own big title, so this one is only for screen readers and search. -->
+    <h1 class="visually-hidden">Conf T</h1>
+
+    <!-- Same origin, so the game can keep its scores and setup choices in localStorage. It
+         keeps its own look on purpose. It reports its height (see the script below), so the
+         frame is always exactly as tall as the tool and never scrolls on its own. The height
+         here is only what shows before that first report. -->
+    <iframe id="tool-frame" src="/learn/conf-t/app.html" title="Conf T" loading="eager"></iframe>
+
+    <noscript>
+      <p class="note">This tool needs JavaScript to run.</p>
+    </noscript>
+
+    <p class="note"><a href="/learn/conf-t/app.html">Open it full screen</a></p>
+  </section>
+</Layout>
+
+<script>
+  const frame = document.getElementById('tool-frame') as HTMLIFrameElement;
+
+  window.addEventListener('message', (event) => {
+    if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
+    if (event.data?.type === 'tool-height' && typeof event.data.height === 'number') {
+      // The frame is border-box, so its border has to be added or it eats into the content
+      // area and the frame grows a scrollbar.
+      const border = frame.offsetHeight - frame.clientHeight;
+      frame.style.height = `${event.data.height + border}px`;
+    }
+  });
+</script>
+
+<style>
+  /* Less top space than other pages, so more of the tool fits on screen at once. Wider than
+     the usual page too: the game is a window with the objectives and the terminal beside it, and at
+     the normal width the game window gets too small to read. */
+  .page {
+    max-width: 90rem;
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-lg);
+  }
+
+  .back {
+    display: inline-block;
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: 60rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-bg-secondary);
+  }
+
+  .note {
+    margin-top: var(--space-sm);
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+  }
+</style>

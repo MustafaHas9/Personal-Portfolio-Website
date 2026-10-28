@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /learn/subnet-trainer/app.html
 Disallow: /learn/packet-pilot/app.html
+Disallow: /learn/conf-t/app.html
+Disallow: /learn/conf-t/lab.html
 
 Sitemap: https://mustafahasnain.com/sitemap-index.xml

@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import subnetTrainerPreview from '../../assets/previews/subnet-trainer.png';
 import packetPilotPreview from '../../assets/previews/packet-pilot.png';
+import confTPreview from '../../assets/previews/conf-t.png';
 
 // Each tool is a self-contained HTML file in public/learn/<slug>/app.html, shown inside the
 // site layout by src/pages/learn/<slug>.astro. Adding one means adding an entry here too.
@@ -23,6 +24,14 @@ const tools = [
       'Guide a packet across a randomly built network. At every stop you choose the MAC address, the route, and the headers, and every wrong turn costs TTL.',
     preview: packetPilotPreview,
     previewAlt: 'Packet Pilot on a farm map: a fox courier beside a house, two barns for switches, and a windmill for the router.',
+  },
+  {
+    href: '/learn/conf-t',
+    name: 'Conf T',
+    description:
+      'A pixel-art story game where the controller is a real Cisco IOS terminal. Type the right commands to solve rooms and defend the town.',
+    preview: confTPreview,
+    previewAlt: 'The Conf T title screen: a night road with glowing waystones and a small hero walking between them.',
   },
 ];
 ---

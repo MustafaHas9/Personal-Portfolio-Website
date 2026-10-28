@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conf T practice lab</title>
+<style>
+:root{
+  --bg:#12161b; --panel:#1a1f26; --panel2:#222831; --line:#343c47;
+  --text:#ece7da; --dim:#98a1ab; --accent:#e8b44c; --accent-ink:#1c1405; --good:#7fcf86; --bad:#ec6f64;
+  --font-ui:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --font-display:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  --font-mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font-ui);padding:16px}
+.shell{max-width:1100px;margin:0 auto}
+h1{margin:0 0 12px;font:600 1.6rem/1 var(--font-display)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tab{padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+.tab[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.tab small{color:var(--dim);margin-left:6px}
+.term{background:#0b0e12;border:1px solid var(--line);border-radius:10px;padding:12px 14px;height:430px;overflow-y:auto;font:400 14px/1.45 var(--font-mono);white-space:pre-wrap;word-break:break-all}
+.term .in{color:#fff}
+.term .sys{color:#e8b44c}
+.inputrow{display:flex;gap:0;align-items:center;margin-top:8px;background:#0b0e12;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:14px/1.4 var(--font-mono)}
+.inputrow:focus-within{border-color:var(--accent)}
+.inputrow .pr{color:var(--accent);white-space:pre}
+.inputrow input{flex:1;min-width:0;background:none;border:0;color:#fff;font:inherit;outline:none;padding:0 0 0 .5ch}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--panel2);padding:7px 12px;border-radius:8px}
+.btn:hover{border-color:var(--accent)}
+.res{font:13px var(--font-mono);color:var(--dim)}
+.res b{color:var(--text);font-weight:600}
+.hint{margin:10px 0 0;color:var(--dim);font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>Conf T practice lab</h1>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="term" id="term" role="log" aria-live="polite" aria-label="Terminal output"></div>
+  <label class="inputrow"><span class="pr" id="pr"></span><input id="in" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Command line"></label>
+  <div class="tools">
+    <button class="btn" id="pingAB" type="button">PC-A pings PC-B</button>
+    <button class="btn" id="pingBA" type="button">PC-B pings PC-A</button>
+    <button class="btn" id="reset" type="button">Reset the lab</button>
+    <span class="res" id="res"></span>
+  </div>
+  <p class="hint">PC-A 192.168.10.10/24 (gateway .10.1) &#8211; SW1 &#8211; R1 &#8211; R2 &#8211; SW2 &#8211; PC-B 192.168.20.10/24 (gateway .20.1). Tab completes, ? lists options, &uarr; recalls, Ctrl+Z ends config.</p>
+</div>
+
+<script src="js/ios.js"></script>
+<script src="js/net.js"></script>
+<script src="js/l2.js"></script>
+<script src="js/packs/basics.js"></script>
+<script src="js/packs/vtp.js"></script>
+<script src="js/packs/stp.js"></script>
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var topo, sessions, logs, current, hpos;
+var NAMES = ["R1", "R2", "SW1", "SW2"];
+
+function build(){
+  topo = NET.sampleLab(); sessions = {}; logs = {}; hpos = {};
+  NAMES.forEach(function(n){ sessions[n] = new IOS.Session(topo.devices[n], topo, "user"); logs[n] = []; hpos[n] = -1; });
+  current = "R1";
+  renderTabs(); show();
+}
+function renderTabs(){
+  $("tabs").innerHTML = NAMES.map(function(n){
+    var d = topo.devices[n];
+    return '<button class="tab" role="tab" type="button" data-n="' + n + '" aria-selected="' + (n === current) + '">' + d.hostname + '<small>' + n + '</small></button>';
+  }).join("");
+}
+function line(text, cls){
+  var el = document.createElement("div");
+  if(cls) el.className = cls;
+  el.textContent = text === "" ? " " : text;
+  $("term").appendChild(el);
+}
+function push(name, text, cls){ logs[name].push([text, cls || ""]); if(name === current) line(text, cls); }
+function show(){
+  $("term").innerHTML = "";
+  logs[current].forEach(function(l){ line(l[0], l[1]); });
+  var d = topo.devices[current];
+  (d.notices || []).splice(0).forEach(function(m){ push(current, m, "sys"); });
+  prompt();
+  $("term").scrollTop = $("term").scrollHeight;
+  $("in").focus();
+}
+function prompt(){
+  var s = sessions[current];
+  $("pr").textContent = s.pendingPrompt ? s.pendingPrompt : s.prompt();
+  $("in").type = s.pendingPrompt ? "password" : "text";
+}
+function scroll(){ $("term").scrollTop = $("term").scrollHeight; }
+
+function submit(text){
+  var s = sessions[current], echo = (s.pendingPrompt ? s.pendingPrompt + " " : s.prompt()) + (s.pendingPrompt ? "" : text);
+  push(current, echo, "in");
+  var out = s.exec(text);
+  if(out) out.split("\n").forEach(function(l){ push(current, l); });
+  var d = topo.devices[current];
+  (d.notices || []).splice(0).forEach(function(m){ push(current, m, "sys"); });
+  hpos[current] = -1;
+  renderTabs(); prompt(); scroll();
+}
+
+$("in").addEventListener("keydown", function(e){
+  var s = sessions[current], v = this.value;
+  if(e.key === "Enter"){ e.preventDefault(); submit(v); this.value = ""; return; }
+  if(s.pendingPrompt) return;
+  if(e.key === "Tab"){ e.preventDefault(); this.value = s.tab(v); return; }
+  if(e.key === "?"){
+    e.preventDefault();
+    push(current, s.prompt() + v + "?", "in");
+    String(s.help(v)).split("\n").forEach(function(l){ push(current, l); });
+    scroll(); return;
+  }
+  if(e.key === "ArrowUp" || e.key === "ArrowDown"){
+    e.preventDefault();
+    var h = s.history;
+    if(!h.length) return;
+    if(e.key === "ArrowUp") hpos[current] = hpos[current] < 0 ? h.length - 1 : Math.max(0, hpos[current] - 1);
+    else hpos[current] = hpos[current] < 0 ? -1 : hpos[current] + 1 >= h.length ? -1 : hpos[current] + 1;
+    this.value = hpos[current] < 0 ? "" : h[hpos[current]];
+    return;
+  }
+  if(e.ctrlKey && (e.key === "z" || e.key === "Z")){
+    e.preventDefault();
+    if(s.mode.indexOf("config") === 0){ push(current, s.prompt() + v + "^Z", "in"); s.exec("end"); this.value = ""; renderTabs(); prompt(); scroll(); }
+    return;
+  }
+  if(e.ctrlKey && (e.key === "c" || e.key === "C")){ e.preventDefault(); push(current, s.prompt() + v + "^C", "in"); this.value = ""; scroll(); }
+});
+$("tabs").addEventListener("click", function(e){
+  var b = e.target.closest(".tab");
+  if(!b) return;
+  current = b.getAttribute("data-n"); renderTabs(); show();
+});
+$("term").addEventListener("click", function(){ if(!window.getSelection().toString()) $("in").focus(); });
+
+function pingBetween(a, b){
+  var A = topo.devices[a], B = topo.devices[b], ip = B.ifaces[0].ip;
+  var r = NET.ping(A, ip, 5);
+  $("res").innerHTML = "<b>" + a + " &rarr; " + b + "</b> (" + ip + "): " + r.line + "  " + r.ok + "/" + r.n;
+  NAMES.forEach(function(n){ if(n !== current){ /* notices stay queued until that device is opened */ } });
+}
+$("pingAB").addEventListener("click", function(){ pingBetween("PC-A", "PC-B"); });
+$("pingBA").addEventListener("click", function(){ pingBetween("PC-B", "PC-A"); });
+$("reset").addEventListener("click", function(){ $("res").textContent = ""; build(); });
+
+build();
+})();
+</script>
+</body>
+</html>

@@ -82,6 +82,36 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   wants the resume, photos, prose, and Cloudflare connection settled first. Phase 3 resumes at
   Stage 2 once those are done.
 
+- **2026-10-27 — A Learn page replaces the "Coming Soon" nav badge.** Standalone single-file HTML
+  tools (no dependencies) live in `public/learn/<slug>/app.html` and are shown inside the site
+  layout by `src/pages/learn/<slug>.astro`, so they keep their own look and are not themed by the
+  site. First tool is the Subnet Trainer. The CCNA CLI trainer joins when it is finished. The raw
+  `app.html` files are disallowed in `robots.txt` so only the wrapped pages are indexed.
+- **2026-10-27 — Colour themes and fonts exist only inside the Subnet Trainer.** An earlier
+  version put a Themes panel in the site nav; it was removed the same day. The trainer has its
+  own Themes control (five colour themes, four fonts, saved in `localStorage`). Fonts are system
+  stacks, so no new font files or requests.
+- **2026-10-27 — Packet Pilot is the second Learn tool.** Endless game where the player is the
+  packet crossing a randomly generated network (single switch, one router, two routers, VLANs and
+  a trunk, mixed at random as the streak grows). TTL is the health bar: Easy refills it on every
+  delivery, Hard is one fixed pool. Settings (mountains, fields, coast, forest, desert, city, or a
+  Journey that rotates them) and six selectable characters are pure SVG, so no images or fonts are
+  loaded. The in-game wording sits in one `T` block at the top of `app.html` for Mustafa to
+  rewrite. The rules engine has no DOM code and was checked against 16,000 generated rounds.
+- **2026-10-28 — "Conf T", a top-down pixel-art game driven by a real Cisco IOS terminal.**
+  Lives in `public/learn/conf-t/` as plain static files (no build step, no dependencies, so it
+  hosts on Cloudflare Pages as is). Split into: `js/ios.js` (command parser: modes,
+  abbreviations, `?`, Tab, real error messages), `js/net.js` (devices, cables, VLANs, trunks,
+  routes, ARP, ping), `js/packs/*.js` (the commands themselves; pack 1 covers Jeremy's IT Lab days
+  1-12 and 16-18), and `js/game/*` (art drawn in code, maps, rooms, story, game loop). Commands are
+  data, so adding a pack never touches the parser. Tab and `?` are locked behind shop items. The
+  story is a hero's-redemption tragedy with five endings that depend on choices and on how
+  accurate the player's commands are; it has nothing to do with networking (the terminal is
+  "the Old Tongue"). Draft bible in `docs/CONF-T-STORY.md`; the dialogue is in
+  `js/game/story.js` and is a draft for Mustafa to rewrite. Tests: `npm run test:cli`.
+  Not linked from the site yet. Still to do: packs 2 and 3 (DTP/VTP, spanning tree), more rooms,
+  and a Learn page card plus an Astro wrapper page like the other tools.
+
 ---
 
 ## Constraints

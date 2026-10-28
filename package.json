@@ -10,6 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "test:cli": "node tests/conf-t/engine.test.mjs && node tests/conf-t/l2.test.mjs && node tests/conf-t/rooms.test.mjs",
     "astro": "astro"
   },
   "dependencies": {
