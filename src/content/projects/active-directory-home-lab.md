@@ -9,10 +9,11 @@ description: >-
 tags:
   - Windows Server 2025
   - Active Directory
-  - DNS / DHCP
   - Group Policy
+  - DNS / DHCP
   - RRAS / NAT
-  - VirtualBox
+  - SMB File Sharing
+  - Virtualization
 github: https://github.com/MustafaHas9/Active-Directory-Home-Lab
 links:
   - label: Walkthrough Part 1

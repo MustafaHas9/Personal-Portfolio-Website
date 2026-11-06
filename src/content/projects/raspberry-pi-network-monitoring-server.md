@@ -7,14 +7,17 @@ description: >-
   static route on the lab's RRAS server, and it's already caught and logged a real outage during
   testing.
 tags:
-  - Raspberry Pi
-  - Debian 13
+  - Linux
   - Docker
-  - Uptime Kuma
+  - Network Monitoring
   - Static Routing
+  - SSH
+  - Raspberry Pi
 github: https://github.com/MustafaHas9/Raspberry-Pi-Network-Monitoring-Server
 links: []
-images: []
+images:
+  - ../../assets/projects/pi-monitoring-file-server.png
+  - ../../assets/projects/pi-monitoring-domain-controller.png
 ---
 
 <!-- Mustafa: this is the expanded story shown when the card opens — the problem, the
