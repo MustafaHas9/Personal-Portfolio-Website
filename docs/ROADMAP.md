@@ -54,7 +54,7 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
 - **Resolved 2026-09-29** — the stack had drifted to include Tailwind and React for one Cult UI
   button. Both are removed; see phase 0, item 1.
 - **2026-09-29 — Production domain is `mustafahasnain.com`.** Registered at Hostinger, set in
-  `astro.config.mjs`. Cloudflare Pages isn't connected yet — see phase 0, item 8, and
+  `astro.config.mjs`. Live on Cloudflare Pages as of 2026-11-05 — see phase 0, item 8, and
   `docs/DEPLOY.md`.
 - **2026-09-29 — No job title or "applying for" framing appears anywhere on the site right now.**
   Home projects only. This drops phase 1, item 2 (the hero "what I'm applying for" line) and
@@ -138,10 +138,10 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
 
 ---
 
-## Current state — 2026-10-12
+## Current state — 2026-11-05
 
-Four static pages (home, projects, qualifications, 404), zero JS bundle except the one small
-filter-toggle script on the projects page. Phases 0, 1, and 2 are complete: no React/Tailwind, real
+Live at `mustafahasnain.com` on Cloudflare Pages. Eight static pages (home, projects,
+qualifications, learn, the three Learn tools, 404). Phases 0, 1, and 2 are complete: no React/Tailwind, real
 SEO metadata and a share image, a sitemap and robots.txt, self-hosted fonts, JSON-LD, CI on
 push/PR, Lighthouse 100 across all four categories on every page, and projects/certifications/skills
 all live in Astro content collections.
@@ -154,9 +154,14 @@ copy was rewritten in a more natural voice. Phase 3 Stage 1 (the trainer termina
 history + recall, no lesson logic) exists at `src/components/Terminal.astro` but isn't wired into
 any route yet — see the 2026-10-08 decision above.
 
-Still missing: Cloudflare Pages isn't connected (settings are written down in `docs/DEPLOY.md`),
-the resume PDF file itself, an Active Directory lab photo (the other three projects have one),
-and the projects' expanded "what broke" story prose (placeholders are in the content files, marked for Mustafa to write).
+Since 2026-10-12: a Learn section with three tools (Subnet Trainer, Packet Pilot, Conf T), the
+projects page reworked (four projects with photos, an image popup, an open-card animation, and a
+filter grouped by related skills — see the 2026-11-05 decisions), and the site went live.
+
+Still missing: the resume PDF file itself (the nav button points at
+`public/Mustafa-Hasnain-Resume.pdf`, which doesn't exist yet, so it 404s) and the projects'
+expanded "what broke" story prose (placeholders are in the content files, marked for Mustafa to
+write).
 
 ---
 
@@ -183,7 +188,7 @@ Estimated: one focused session.
 5. **Done — 2026-09-29.** Open Graph and Twitter card tags added. Share image at
    `public/og-image.png`, composited from the existing headshot and the site's own hero copy —
    built as a one-off `sharp` script, not a committed dependency or pipeline. Not yet verified in
-   LinkedIn's Post Inspector (needs the live domain).
+   LinkedIn's Post Inspector (the domain is live now, so this can be checked).
 
 6. **Done — 2026-09-29.** `@astrojs/check` and `typescript` installed; `npm run check` passes
    with 0 errors.
@@ -192,8 +197,8 @@ Estimated: one focused session.
    `npm run build` on push to `main` and on pull requests. Not yet verified against a deliberately
    broken commit.
 
-8. **Done — 2026-09-29.** Not connected yet — build settings, environment variables, and the
-   domain steps are written down in `docs/DEPLOY.md` for when it is.
+8. **Done — 2026-11-05.** Connected and live at `mustafahasnain.com`. Build settings,
+   environment variables, and the domain steps are in `docs/DEPLOY.md`.
 
 9. **Done — 2026-09-29.** `viewport` is now `width=device-width, initial-scale=1`.
 
@@ -317,6 +322,8 @@ destination into several.
 
 Nothing above is worth continuing blind.
 
+*The domain is live, so items 1 and 2 are unblocked.*
+
 1. **Add privacy-respecting analytics.** Cloudflare Web Analytics is free, needs no cookie banner,
    and is already part of the hosting.
 2. **Verify in Google Search Console** and submit the sitemap. Watch which queries actually
@@ -348,7 +355,6 @@ Recorded so they don't get picked up by accident.
 - SMS InfoComm (current GPU repair job) stays off the site text by default — revisit if that
   changes.
 - Which CLI topic is lesson one?
-- A photo for the Active Directory Home Lab card. The other three projects have one.
 - The two projects' expanded-story prose (the "what broke" section) — placeholders are in the
   content files now; this is Mustafa's to write per `CLAUDE.md`, drafted in chat first if wanted.
-- Cloudflare Pages project isn't created yet — settings are in `docs/DEPLOY.md` for when it is.
+- Share image check in LinkedIn's Post Inspector, now that the domain is live.

@@ -20,7 +20,8 @@ links:
     href: https://www.youtube.com/watch?v=1mkJi7Ar-DA
   - label: Walkthrough Part 2
     href: https://www.youtube.com/watch?v=neriTCaLLzA
-images: []
+images:
+  - ../../assets/projects/active-directory-network-architecture.png
 ---
 
 <!-- Mustafa: this is the expanded story shown when the card opens — the problem, the

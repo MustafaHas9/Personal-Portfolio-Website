@@ -1,6 +1,7 @@
 # Deploy
 
-Cloudflare Pages, free tier. Not connected yet — these are the settings to enter when it is.
+Cloudflare Pages, free tier. Connected and live at `mustafahasnain.com` as of 2026-11-05. These
+are the settings the project uses.
 
 ## Cloudflare Pages project settings
 
