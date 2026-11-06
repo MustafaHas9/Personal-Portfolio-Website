@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import { getCollection, render } from 'astro:content';
 import Icon from '../components/Icon.astro';
 import Layout from '../layouts/Layout.astro';
+import { filterGroups } from '../data/filter-groups';
 
 const entries = await getCollection('projects');
 const projects = await Promise.all(
@@ -12,7 +13,12 @@ const projects = await Promise.all(
   }))
 );
 
-const allTags = [...new Set(projects.flatMap((project) => project.tags))];
+// A tag filters under its group (see filter-groups.ts), or under its own name if it has none.
+// Cards still list their specific tags.
+const filterFor = (tag: string) =>
+  Object.entries(filterGroups).find(([, tags]) => tags.includes(tag))?.[0] ?? tag;
+const filtersOf = (tags: string[]) => [...new Set(tags.map(filterFor))];
+const allFilters = [...new Set(projects.flatMap((project) => filtersOf(project.tags)))];
 ---
 
 <Layout
@@ -28,15 +34,15 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
         <Icon name="chevron" size={14} class="chevron" />
       </button>
       <div class="filters" id="filter-panel" role="group" aria-label="Filter by skill" hidden>
-        {allTags.map((tag) => (
-          <button type="button" class="chip glow-btn" data-tag={tag} aria-pressed="false">{tag}</button>
+        {allFilters.map((filter) => (
+          <button type="button" class="chip glow-btn" data-filter={filter} aria-pressed="false">{filter}</button>
         ))}
       </div>
     </div>
 
     <div class="projects">
       {projects.map((project) => (
-        <details class="project" data-tags={JSON.stringify(project.tags)}>
+        <details class="project" data-filters={JSON.stringify(filtersOf(project.tags))}>
           <summary>
             <div class="card-header">
               <h2>{project.name}</h2>
@@ -113,16 +119,16 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
 
   function applyFilter() {
     cards.forEach((card) => {
-      const tags: string[] = JSON.parse(card.dataset.tags || '[]');
-      card.hidden = selected.size > 0 && !tags.some((tag) => selected.has(tag));
+      const filters: string[] = JSON.parse(card.dataset.filters || '[]');
+      card.hidden = selected.size > 0 && !filters.some((filter) => selected.has(filter));
     });
   }
 
   chips.forEach((chip) => {
     chip.addEventListener('click', () => {
-      const tag = chip.dataset.tag as string;
-      const isSelected = selected.has(tag);
-      isSelected ? selected.delete(tag) : selected.add(tag);
+      const filter = chip.dataset.filter as string;
+      const isSelected = selected.has(filter);
+      isSelected ? selected.delete(filter) : selected.add(filter);
       chip.setAttribute('aria-pressed', String(!isSelected));
       applyFilter();
     });

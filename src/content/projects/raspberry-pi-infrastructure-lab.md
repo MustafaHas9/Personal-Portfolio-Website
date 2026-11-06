@@ -9,9 +9,7 @@ tags:
   - Linux
   - Docker Compose
   - DNS Filtering
-  - SMB / CIFS
   - systemd
-  - Raspberry Pi
 github: https://github.com/MustafaHas9/Raspberry-Pi-Infrastructure-Lab
 links: []
 images:

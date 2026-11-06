@@ -3,7 +3,7 @@
 Working plan for the site. This file is the source of truth for what gets built, in what order,
 and why. Update it when a decision changes — a stale plan is worse than none.
 
-Last reviewed: 2026-10-12
+Last reviewed: 2026-11-05
 
 ---
 
@@ -109,8 +109,22 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   accurate the player's commands are; it has nothing to do with networking (the terminal is
   "the Old Tongue"). Draft bible in `docs/CONF-T-STORY.md`; the dialogue is in
   `js/game/story.js` and is a draft for Mustafa to rewrite. Tests: `npm run test:cli`.
-  Not linked from the site yet. Still to do: packs 2 and 3 (DTP/VTP, spanning tree), more rooms,
-  and a Learn page card plus an Astro wrapper page like the other tools.
+  Linked from the Learn page (card plus `src/pages/learn/conf-t.astro`). Still to do: packs 2 and 3
+  (DTP/VTP, spanning tree) and more rooms.
+
+- **2026-11-05 — The project skill filter groups tags only where they belong together.**
+  Groups live in `src/data/filter-groups.ts` (Networking, Windows, Linux, Docker, Cisco). A tag
+  with no group, such as Virtualization or Active Directory, is its own chip instead of being forced
+  under a made-up category. Chips are derived from each project's `tags`, so there is nothing
+  extra to maintain per project; a new tag appears as its own chip until it is added to a group.
+  The cards still show the specific tags (VLANs, EtherChannel / LACP, Spanning Tree, systemd and so
+  on). Still ANY-match. Tags use the terms a job posting would: Jellyfin, Uptime Kuma, Pi-hole as a
+  product name, and "Raspberry Pi" were dropped because they say nothing to a recruiter. Every tag
+  is backed by a README in the GitHub repos.
+- **2026-11-05 — Project list changed.** The CCNA CLI Trainer and Portfolio Website cards were
+  removed. The Cisco Network Lab (Packet Tracer campus LAN, photo shown in a popup) replaced them.
+  Project cards now take photos: the thumbnail opens a full-size popup (native `<dialog>`), and an
+  open card scales up slightly (animation is off under `prefers-reduced-motion`).
 
 ---
 
@@ -141,8 +155,8 @@ history + recall, no lesson logic) exists at `src/components/Terminal.astro` but
 any route yet — see the 2026-10-08 decision above.
 
 Still missing: Cloudflare Pages isn't connected (settings are written down in `docs/DEPLOY.md`),
-the resume PDF file itself, project photos, and the two projects' expanded "what broke" story
-prose (placeholders are in the content files, marked for Mustafa to write).
+the resume PDF file itself, an Active Directory lab photo (the other three projects have one),
+and the projects' expanded "what broke" story prose (placeholders are in the content files, marked for Mustafa to write).
 
 ---
 
@@ -334,8 +348,7 @@ Recorded so they don't get picked up by accident.
 - SMS InfoComm (current GPU repair job) stays off the site text by default — revisit if that
   changes.
 - Which CLI topic is lesson one?
-- Project photos exist locally but the exact folder wasn't given — needed to fill the `images`
-  field in `src/content/projects/*.md` and drop the files under `src/assets/projects/`.
+- A photo for the Active Directory Home Lab card. The other three projects have one.
 - The two projects' expanded-story prose (the "what broke" section) — placeholders are in the
   content files now; this is Mustafa's to write per `CLAUDE.md`, drafted in chat first if wanted.
 - Cloudflare Pages project isn't created yet — settings are in `docs/DEPLOY.md` for when it is.

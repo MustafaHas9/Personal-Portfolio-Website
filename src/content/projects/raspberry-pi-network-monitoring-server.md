@@ -9,10 +9,8 @@ description: >-
 tags:
   - Linux
   - Docker
-  - Network Monitoring
   - Static Routing
   - SSH
-  - Raspberry Pi
 github: https://github.com/MustafaHas9/Raspberry-Pi-Network-Monitoring-Server
 links: []
 images:
