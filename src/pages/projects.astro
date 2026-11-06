@@ -17,7 +17,7 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
 
 <Layout
   title="Projects | Mustafa Hasnain"
-  description="Home lab and infrastructure projects: Active Directory, Raspberry Pi monitoring and services, and a CCNA CLI trainer."
+  description="Home lab and infrastructure projects: Active Directory and Raspberry Pi monitoring and services."
 >
   <section class="page">
     <h1>Projects</h1>
@@ -231,6 +231,40 @@ const allTags = [...new Set(projects.flatMap((project) => project.tags))];
     border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: var(--space-lg);
+    interpolate-size: allow-keywords;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Open card grows slightly and lifts, so the click reads as the card itself
+     expanding. Scale is small enough to stay inside the page gutter at 375px. */
+  .project[open] {
+    transform: scale(1.015);
+    border-color: var(--color-accent);
+    box-shadow: 0 10px 30px rgb(var(--accent-rgb) / 0.18);
+  }
+
+  /* Native <details> snaps open; animating the content slot's height is the only
+     way to ease it without JS. Browsers without ::details-content (Firefox) just
+     skip this and still open instantly, so nothing breaks. */
+  .project::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition: block-size 0.3s ease, content-visibility 0.3s allow-discrete;
+  }
+
+  .project[open]::details-content {
+    block-size: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project,
+    .project::details-content {
+      transition: none;
+    }
+
+    .project[open] {
+      transform: none;
+    }
   }
 
   .project summary {
