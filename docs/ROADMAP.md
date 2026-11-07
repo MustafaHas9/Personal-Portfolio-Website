@@ -132,6 +132,12 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   (2400x1260); the Post Inspector preview still looks soft but is readable. An Entra ID Lab card
   was added (facts taken from the resume); the skills list now says Linux, Switching and
   Virtualization instead of Ubuntu Linux, Ping, Traceroute and VirtualBox.
+- **2026-11-06 — The landing page names the current job.** Mustafa supplied new homepage copy: the
+  subhead is "IT Student | Server Repair Technician", and the text mentions his server repair
+  technician work (testing and troubleshooting data center GPUs) and the Entra ID connection. This
+  supersedes the 2026-09-29 decision to keep job titles and SMS InfoComm off the site text. The
+  employer's name is still not on the pages (it is on the resume PDF). JSON-LD has no `jobTitle`
+  field yet.
 
 ---
 
@@ -355,6 +361,4 @@ Recorded so they don't get picked up by accident.
 
 ## Open questions
 
-- SMS InfoComm (current GPU repair job) is on the downloadable resume but stays off the site's own
-  text. Revisit if that changes.
 - Which CLI topic is lesson one?
