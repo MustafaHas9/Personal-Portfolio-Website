@@ -129,7 +129,9 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   stay as description, tags, links and photos. The placeholder comments in the project files were
   removed. The resume PDF is live at `public/Mustafa-Hasnain-Resume.pdf`. Google Search Console
   has the sitemap and Cloudflare Web Analytics is on. The LinkedIn share image was redone
-  (2400x1260); the Post Inspector preview still looks soft but is readable.
+  (2400x1260); the Post Inspector preview still looks soft but is readable. An Entra ID Lab card
+  was added (facts taken from the resume); the skills list now says Linux, Switching and
+  Virtualization instead of Ubuntu Linux, Ping, Traceroute and VirtualBox.
 
 ---
 

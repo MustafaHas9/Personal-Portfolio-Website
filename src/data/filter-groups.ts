@@ -16,4 +16,5 @@ export const filterGroups: Record<string, string[]> = {
   Linux: ['Linux', 'systemd', 'SSH'],
   Docker: ['Docker', 'Docker Compose'],
   Cisco: ['Cisco IOS', 'Packet Tracer'],
+  'Microsoft Entra ID': ['Microsoft Entra ID', 'Entra Connect Sync', 'Password Hash Sync', 'MFA'],
 };
