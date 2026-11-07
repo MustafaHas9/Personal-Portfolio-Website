@@ -136,8 +136,11 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   subhead is "IT Student | Server Repair Technician", and the text mentions his server repair
   technician work (testing and troubleshooting data center GPUs) and the Entra ID connection. This
   supersedes the 2026-09-29 decision to keep job titles and SMS InfoComm off the site text. The
-  employer's name is still not on the pages (it is on the resume PDF). JSON-LD has no `jobTitle`
-  field yet.
+  employer's name is still not on the pages (it is on the resume PDF). For search, the home page
+  title is now "Mustafa Hasnain | IT Support, Help Desk & Networking | DFW", the description names
+  Dallas–Fort Worth, and the JSON-LD gained `jobTitle`, a short description, `address` (state only,
+  no city), and `knowsAbout`. Goal: be found for "mustafa hasnain" plus DFW or an entry-level IT role.
+  The Pi Monitoring card now says "simulated outage", matching the resume.
 
 ---
 

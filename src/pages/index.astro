@@ -9,6 +9,10 @@ const personSchema = {
   '@type': 'Person',
   name: 'Mustafa Hasnain',
   url: 'https://mustafahasnain.com',
+  jobTitle: 'Server Repair Technician',
+  description: 'IT student and server repair technician in the Dallas–Fort Worth area, working toward a career in IT infrastructure and networking.',
+  address: { '@type': 'PostalAddress', addressRegion: 'TX', addressCountry: 'US' },
+  knowsAbout: ['Active Directory', 'Microsoft Entra ID', 'Linux', 'Networking', 'Cisco', 'Troubleshooting'],
   alumniOf: {
     '@type': 'CollegeOrUniversity',
     name: 'University of Texas at Dallas',
@@ -22,8 +26,8 @@ const personSchema = {
 ---
 
 <Layout
-  title="Mustafa Hasnain"
-  description="IT student and server repair technician building home labs in Active Directory, Microsoft Entra ID, Linux, and networking."
+  title="Mustafa Hasnain | IT Support, Help Desk & Networking | DFW"
+  description="Mustafa Hasnain is an IT student and server repair technician in Dallas–Fort Worth. Home labs in Active Directory, Entra ID, Linux, and networking."
 >
   <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
   <section class="page hero">
