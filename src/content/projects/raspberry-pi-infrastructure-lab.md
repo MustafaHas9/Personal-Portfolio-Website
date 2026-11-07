@@ -15,5 +15,3 @@ links: []
 images:
   - ../../assets/projects/raspberry-pi-infrastructure-lab.jpg
 ---
-
-<!-- Mustafa: expanded story goes here when the card opens. -->

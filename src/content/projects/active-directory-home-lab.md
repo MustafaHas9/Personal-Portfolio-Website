@@ -23,7 +23,3 @@ links:
 images:
   - ../../assets/projects/active-directory-network-architecture.png
 ---
-
-<!-- Mustafa: this is the expanded story shown when the card opens — the problem, the
-architecture, what broke and how you diagnosed it, what it'd take to run this in production.
-See docs/ROADMAP.md, phase 1 item 3. Written in chat first if you want a draft to react to. -->

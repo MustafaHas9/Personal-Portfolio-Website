@@ -64,7 +64,7 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   email) are the contact point. This satisfies phase 1, item 4 as originally scoped; no new work
   needed there. Keeps the earlier 2026-09-08 decision to drop the standalone Contact page intact.
 - **2026-09-29 — Resume is a small download button in the nav, not a page section.** Wired to
-  `public/Mustafa-Hasnain-Resume.pdf`; the file itself is added separately whenever it's ready.
+  `public/Mustafa-Hasnain-Resume.pdf`. The file was added 2026-11-06.
 - **2026-09-26 — Projects page is the current priority**, and its detail pattern is an
   expand-in-place card, not a dedicated page per project. Superseded phase 1 item 3, which had
   called for separate project routes.
@@ -125,6 +125,11 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   removed. The Cisco Network Lab (Packet Tracer campus LAN, photo shown in a popup) replaced them.
   Project cards now take photos: the thumbnail opens a full-size popup (native `<dialog>`), and an
   open card scales up slightly (animation is off under `prefers-reduced-motion`).
+- **2026-11-06 — No "what broke" write-ups on the project cards.** Dropped by Mustafa; the cards
+  stay as description, tags, links and photos. The placeholder comments in the project files were
+  removed. The resume PDF is live at `public/Mustafa-Hasnain-Resume.pdf`. Google Search Console
+  has the sitemap and Cloudflare Web Analytics is on. The LinkedIn share image was redone
+  (2400x1260); the Post Inspector preview still looks soft but is readable.
 
 ---
 
@@ -158,10 +163,8 @@ Since 2026-10-12: a Learn section with three tools (Subnet Trainer, Packet Pilot
 projects page reworked (four projects with photos, an image popup, an open-card animation, and a
 filter grouped by related skills — see the 2026-11-05 decisions), and the site went live.
 
-Still missing: the resume PDF file itself (the nav button points at
-`public/Mustafa-Hasnain-Resume.pdf`, which doesn't exist yet, so it 404s) and the projects'
-expanded "what broke" story prose (placeholders are in the content files, marked for Mustafa to
-write).
+The resume PDF was added 2026-11-06, so the nav button works. Nothing else is known to be
+missing; see Open questions.
 
 ---
 
@@ -225,7 +228,7 @@ Estimated: one to two sessions.
 
 1. **Done — 2026-09-29.** Small "Resume" download button in the nav, next to the social icons (see
    the resume decision above — not a page section). Wired to
-   `public/Mustafa-Hasnain-Resume.pdf`; the file itself is still pending.
+   `public/Mustafa-Hasnain-Resume.pdf` (file added 2026-11-06).
 
 2. **Dropped — 2026-09-29.** No job title or "applying for" line anywhere on the site right now.
    See the decision above.
@@ -233,10 +236,9 @@ Estimated: one to two sessions.
 3. **Done — 2026-09-29.** Each project card is a native `<details>`/`<summary>` element — the whole
    card is the clickable unit, keyboard-accessible for free, no client-side script needed for the
    expand itself. A skill filter sits above the list: chips built from the union of every project's
-   tags, ANY-match (see decision above), the one small hand-written script on this page. Both
-   projects have an `images: []` slot and a Markdown body ready for the deeper "what broke" story —
-   both are empty placeholders right now (see Open questions: photos, and the story prose is
-   Mustafa's to write per `CLAUDE.md`).
+   tags, ANY-match (see decision above), the one small hand-written script on this page. Projects
+   have an `images` slot, and each card's photos open in a popup. The longer "what broke" write-ups
+   were dropped 2026-11-06 (see decisions).
 
 4. **Dropped — 2026-09-29, satisfied by existing icons.** See the no-contact-page decision above.
 
@@ -351,10 +353,6 @@ Recorded so they don't get picked up by accident.
 
 ## Open questions
 
-- The resume PDF itself — the button is wired to `public/Mustafa-Hasnain-Resume.pdf`, file pending.
-- SMS InfoComm (current GPU repair job) stays off the site text by default — revisit if that
-  changes.
+- SMS InfoComm (current GPU repair job) is on the downloadable resume but stays off the site's own
+  text. Revisit if that changes.
 - Which CLI topic is lesson one?
-- The two projects' expanded-story prose (the "what broke" section) — placeholders are in the
-  content files now; this is Mustafa's to write per `CLAUDE.md`, drafted in chat first if wanted.
-- Share image check in LinkedIn's Post Inspector, now that the domain is live.

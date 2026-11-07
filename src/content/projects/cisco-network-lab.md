@@ -16,5 +16,3 @@ links: []
 images:
   - ../../assets/projects/cisco-network-lab-topology.png
 ---
-
-<!-- Mustafa: expanded story goes here when the card opens. -->
