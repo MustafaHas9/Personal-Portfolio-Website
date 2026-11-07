@@ -32,19 +32,31 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
   </nav>
   <div class="nav-actions">
     <a class="resume glow-btn" href="/Mustafa-Hasnain-Resume.pdf" download title="Download resume (PDF)">Resume</a>
-    {socials.map(({ icon, label, href, brand, external }) => (
-      <a
-        class="social"
-        data-brand={brand}
-        href={href}
-        aria-label={label}
-        title={label}
-        target={external ? '_blank' : undefined}
-        rel={external ? 'noopener noreferrer' : undefined}
-      >
-        <Icon name={icon} size={22} />
-      </a>
-    ))}
+    {socials.map(({ icon, label, href, brand, external }) => {
+      const link = (
+        <a
+          class="social"
+          data-brand={brand}
+          href={href}
+          aria-label={label}
+          title={label}
+          target={external ? '_blank' : undefined}
+          rel={external ? 'noopener noreferrer' : undefined}
+        >
+          <Icon name={icon} size={22} />
+        </a>
+      );
+      // The email link also copies the address (see the script), so it carries its own
+      // "copied" note directly beneath it.
+      return icon === 'envelope' ? (
+        <span class="email-wrap">
+          {link}
+          <span class="copied" role="status" aria-live="polite" />
+        </span>
+      ) : (
+        link
+      );
+    })}
     <Button id="theme-toggle" variant="icon" aria-label="Toggle dark mode" aria-pressed="false">
       <Icon name="moon" size={16} class="icon-moon" />
       <Icon name="sun" size={16} class="icon-sun" />
@@ -190,6 +202,42 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     border-color: var(--color-accent);
   }
 
+  .email-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+
+  /* Out of the layout flow (absolute) so showing it never shifts the nav. It is empty and
+     invisible until the script fills it: an aria-live region only announces text that
+     changes, so the text has to be set on click rather than sitting here hidden. */
+  .copied {
+    position: absolute;
+    top: calc(100% + var(--space-xs));
+    left: 50%;
+    translate: -50% 0;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--color-accent);
+    border-radius: 6px;
+    background: var(--color-bg-secondary);
+    color: var(--color-accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .copied.show {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .copied {
+      transition: none;
+    }
+  }
+
   /* Standalone logos: no circle, glow follows the logo's own shape. */
   /* The glow colour is bare RGB channels so both filter states are plain rgb() colours
      and always have the same number of drop-shadows. Mixing colour spaces or list
@@ -299,5 +347,28 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
     setPressed(next);
+  });
+
+  // A mailto: link does nothing for people whose browser has no mail app set up, so the
+  // click also copies the address. No preventDefault: the mail app still opens for
+  // everyone who has one. The note only shows if the copy actually succeeded.
+  const emailLink = document.querySelector<HTMLAnchorElement>('a[href^="mailto:"]');
+  const copiedNote = document.querySelector<HTMLElement>('.copied');
+  let hideTimer: number | undefined;
+
+  emailLink?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(emailLink.href.replace('mailto:', ''));
+    } catch {
+      return;
+    }
+    if (!copiedNote) return;
+    copiedNote.textContent = 'Email copied!';
+    copiedNote.classList.add('show');
+    clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => {
+      copiedNote.classList.remove('show');
+      copiedNote.textContent = '';
+    }, 2000);
   });
 </script>
