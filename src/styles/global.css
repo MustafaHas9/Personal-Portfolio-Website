@@ -22,8 +22,10 @@
   --color-text: #0f172a;
   --color-text-secondary: #475569;
   --color-border: #e2e8f0;
-  --color-accent: #d97706;
-  --color-accent-hover: #b45309;
+  /* Deeper amber than the old #d97706, which was only 3.19:1 on white and failed WCAG AA
+     for body-size text. #b45309 is 5.02:1; hover goes darker still. Same hue. */
+  --color-accent: #b45309;
+  --color-accent-hover: #92400e;
   --color-accent-solid: #c2760a;
   /* Accent as bare RGB channels, for rgb(var(--accent-rgb) / alpha) glows. */
   --accent-rgb: 217 119 6;

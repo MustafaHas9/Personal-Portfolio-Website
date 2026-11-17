@@ -102,13 +102,6 @@ const allFilters = [...new Set(projects.flatMap((project) => filtersOf(project.t
         </details>
       ))}
     </div>
-
-    <div class="next-up">
-      <p>
-        <strong>Coming next:</strong> an interactive Cisco-style CLI trainer built right into this site. Watch
-        the badge in the nav bar.
-      </p>
-    </div>
   </section>
 </Layout>
 
@@ -493,23 +486,6 @@ const allFilters = [...new Set(projects.flatMap((project) => filtersOf(project.t
 
   .story :global(p:last-child) {
     margin-bottom: 0;
-  }
-
-  .next-up {
-    margin-top: var(--space-xl);
-    padding: var(--space-md);
-    border: 1px dashed var(--color-border);
-    border-radius: 10px;
-    text-align: center;
-  }
-
-  .next-up p {
-    color: var(--color-text-secondary);
-    font-size: 0.95rem;
-  }
-
-  .next-up strong {
-    color: var(--color-text);
   }
 
   @media (max-width: 640px) {

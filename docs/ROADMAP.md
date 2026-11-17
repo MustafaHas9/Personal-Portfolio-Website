@@ -142,10 +142,15 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   no city), and `knowsAbout`. Goal: be found for "mustafa hasnain" plus DFW or an entry-level IT role.
   The Pi Monitoring card now says "simulated outage", matching the resume.
 - **2026-11-17 — Learn leaves the nav and moves to the footer.** The gold Learn badge is gone from
-  the top nav. /learn is reached from a small "Learn" chip in the footer, next to the copyright, or
+  the top nav. /learn is reached from a plain "Learn" text link in the footer, styled like the copyright, or
   by typing the URL. The footer also shows mustafa@mustafahasnain.com as a mailto link. The Learn
   pages are still in the sitemap and still indexable; Mustafa has not asked for them to be hidden
   from search.
+- **2026-11-17 — Colours kept, light-mode contrast fixed.** Mustafa chose to keep the gold/amber
+  identity. The light-theme accent changed from #d97706 (3.19:1 on white, below the 4.5:1 WCAG AA
+  minimum for body-size text) to #b45309 (5.02:1), hover to #92400e. Dark theme unchanged (gold on
+  black is 14.56:1). Glow colours were left alone. A blue-led palette was previewed and not chosen.
+  The "Coming next" CLI-trainer note at the bottom of the Projects page was removed; Learn exists.
 
 ---
 
