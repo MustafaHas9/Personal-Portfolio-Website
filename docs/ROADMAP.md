@@ -3,7 +3,7 @@
 Working plan for the site. This file is the source of truth for what gets built, in what order,
 and why. Update it when a decision changes — a stale plan is worse than none.
 
-Last reviewed: 2026-11-05
+Last reviewed: 2026-11-17
 
 ---
 
@@ -141,6 +141,11 @@ Recorded so they don't get relitigated, and dated so it's clear when they were m
   Dallas–Fort Worth, and the JSON-LD gained `jobTitle`, a short description, `address` (state only,
   no city), and `knowsAbout`. Goal: be found for "mustafa hasnain" plus DFW or an entry-level IT role.
   The Pi Monitoring card now says "simulated outage", matching the resume.
+- **2026-11-17 — Learn leaves the nav and moves to the footer.** The gold Learn badge is gone from
+  the top nav. /learn is reached from a small "Learn" chip in the footer, next to the copyright, or
+  by typing the URL. The footer also shows mustafa@mustafahasnain.com as a mailto link. The Learn
+  pages are still in the sitemap and still indexable; Mustafa has not asked for them to be hidden
+  from search.
 
 ---
 

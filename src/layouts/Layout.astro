@@ -52,6 +52,8 @@ const imageURL = new URL(image, Astro.site);
     </div>
     <footer>
       <p>&copy; {year} Mustafa Hasnain</p>
+      <a class="footer-chip glow-btn" href="/learn">Learn</a>
+      <a class="footer-email" href="mailto:mustafa@mustafahasnain.com">mustafa@mustafahasnain.com</a>
     </footer>
   </body>
 </html>
@@ -101,14 +103,44 @@ const imageURL = new URL(image, Astro.site);
     -webkit-mask-image: linear-gradient(to right, black 0%, black 20%, transparent 45%);
   }
 
+  /* Wraps on phones so the three items stack instead of overflowing at 375px. */
   footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs) var(--space-sm);
     padding: var(--space-md);
     border-top: 1px solid var(--color-border);
     text-align: center;
   }
 
-  footer p {
+  footer p,
+  .footer-email {
     font-size: 0.85rem;
     color: var(--color-text-secondary);
+  }
+
+  .footer-email:hover,
+  .footer-email:focus-visible {
+    color: var(--color-accent);
+  }
+
+  /* Same small boxy chip as the Resume button and GitHub badge (6px radius), in the
+     footer's own font size, so the only way into /learn stays quiet. */
+  .footer-chip {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.2rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+  }
+
+  .footer-chip:hover,
+  .footer-chip:focus-visible {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
   }
 </style>
